@@ -1,4 +1,4 @@
-package com.professor.socialMedia.dto;
+package com.professor.socialMedia.dto.request;
 
 import lombok.Data;
 

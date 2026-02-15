@@ -1,12 +1,18 @@
 package com.professor.socialMedia.controler;
 
 
+import com.professor.socialMedia.Security.CustomUserDetail;
+import com.professor.socialMedia.dto.UserDto;
+import com.professor.socialMedia.dto.mapper.UserMapper;
+import com.professor.socialMedia.dto.response.ApiResponse;
 import com.professor.socialMedia.entity.User;
 import com.professor.socialMedia.service.UserService;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,26 +24,94 @@ public class UserControler {
 
     @Autowired
     private UserService userService;
+    @Autowired
+    private UserMapper userMapper;
 
-    //create user
-
-    @PostMapping
-    public ResponseEntity<?> createUser(@RequestBody User user) {
-        User created = userService.createUser(user);
-        return new ResponseEntity<>(HttpStatus.CREATED);
+    /**
+     * Get current authenticated user profile
+     */
+    @GetMapping("/profile")
+    public ResponseEntity<ApiResponse<UserDto>> getCurrentUser(@AuthenticationPrincipal CustomUserDetail user){
+        User userEntity = userService.findByEmail(user.getUsername()).orElse(null);
+        if(userEntity == null){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                    ApiResponse.error("User Profile Not Found")
+            );
+        }
+        UserDto userDto = userMapper.mapUser(userEntity);
+        return ResponseEntity.ok(ApiResponse.success("User profile retrieved successfully", userDto));
     }
 
+    /**
+     * Get all users - ADMIN only
+     */
     @GetMapping
-    public ResponseEntity<List<User>>  getAllUsers(){
-        List<User> users = userService.findAll();
-        return new ResponseEntity<>(users, HttpStatus.OK);
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<?>> getAllUsers() {
+        return ResponseEntity.ok(ApiResponse.success("Users retrieved successfully", userService.findAll()));
     }
 
+    /**
+     * Get user by ID - ADMIN only
+     */
     @GetMapping("/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable ObjectId id) {
-        return userService.findById(id)
-                .map(ResponseEntity::ok)
-                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<UserDto>> getUserById(@PathVariable ObjectId id) {
+        User user = userService.findById(id).orElse(null);
+        if (user == null) {
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.error("User not found"));
+        }
+
+        UserDto userDto = userMapper.mapUser(user);
+        return ResponseEntity.ok(ApiResponse.success("User retrieved successfully", userDto));
     }
+
+
+
+    /**
+     * Update current user's own profile
+     */
+    @PutMapping("/profile")
+    public ResponseEntity<ApiResponse<UserDto>> updateProfile(
+            @AuthenticationPrincipal CustomUserDetail user,
+            @RequestBody UserDto updateRequest) {
+
+        User userEntity = userService.findByEmail(user.getUsername()).orElse(null);
+        if (userEntity == null) {
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.error("User not found"));
+        }
+
+        // Only allow updating own profile
+        if (updateRequest.getAddresses() != null) {
+            userEntity.setAddresses(updateRequest.getAddresses());
+        }
+
+        User updated = userService.updateUser(userEntity);
+        UserDto userDto = userMapper.mapUser(updated);
+        return ResponseEntity.ok(ApiResponse.success("Profile updated successfully", userDto));
+    }
+
+    /**
+     * Delete current user's account
+     */
+    @DeleteMapping("/profile")
+    public ResponseEntity<ApiResponse<Void>> deleteCurrentUserAccount(
+            @AuthenticationPrincipal CustomUserDetail user) {
+
+        User userEntity = userService.findByEmail(user.getUsername()).orElse(null);
+        if (userEntity == null) {
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.error("User not found"));
+        }
+
+        userService.deleteById(userEntity.getId());
+        return ResponseEntity.ok(ApiResponse.success("Account deleted successfully", null));
+    }
+
 
 }

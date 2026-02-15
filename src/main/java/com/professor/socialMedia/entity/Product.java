@@ -25,4 +25,8 @@ public class Product {
 
     private boolean active = true;
     private Instant createdAt = Instant.now();
+
+    public Boolean getActive() {
+        return active;
+    }
 }

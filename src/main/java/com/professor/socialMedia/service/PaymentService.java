@@ -1,7 +1,7 @@
 package com.professor.socialMedia.service;
 
 
-import com.professor.socialMedia.dto.PaymentWebhookRequest;
+import com.professor.socialMedia.dto.request.PaymentWebhookRequest;
 import com.professor.socialMedia.entity.Order;
 import com.professor.socialMedia.entity.OrderStatus;
 import com.professor.socialMedia.entity.Payment;
@@ -24,8 +24,9 @@ public class PaymentService {
     @Autowired
     private OrderRepository orderRepository;
 
-    public Payment createPayment(ObjectId orderId, String provider) {
-        Order order = orderRepository.findById(orderId)
+    public Payment createPayment(ObjectId orderId, ObjectId userId, String provider) {
+        Order order =  orderRepository
+                .findByIdAndUserId(orderId, userId)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
 
         if(order.getStatus() != OrderStatus.CREATED) {
@@ -65,12 +66,12 @@ public class PaymentService {
                 .orElseThrow(() -> new RuntimeException("Order not found"));
 
         // 4. Save payment
-        Payment payment = new Payment();
-        payment.setOrderId(orderId);
-        payment.setProvider("RAZORPAY");
-        payment.setProviderPaymentId(providerPaymentId);
-        payment.setStatus(success ? PaymentStatus.SUCCESS : PaymentStatus.FAILED);
+        Payment payment = paymentRepository
+                .findByOrderIdAndStatus(orderId, PaymentStatus.CREATED)
+                .orElseThrow(() -> new RuntimeException("No pending payment found"));
 
+        payment.setProviderPaymentId(req.getPaymentId());
+        payment.setStatus(success ? PaymentStatus.SUCCESS : PaymentStatus.FAILED);
         Payment savedPayment = paymentRepository.save(payment);
 
         // 5. UPDATE ORDER (THIS IS THE MAIN BUG)

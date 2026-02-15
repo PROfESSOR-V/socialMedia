@@ -41,7 +41,7 @@ public class OrderService {
             Product p = productRepository.findById(ci.getProductId())
                     .orElseThrow(() -> new RuntimeException("Product not found" + ci.getProductId()));
 
-            if( !p.isActive()){
+            if( !p.getActive()){
                 throw new RuntimeException("Product is not active");
             }
             if(ci.getQuantity()<=0){

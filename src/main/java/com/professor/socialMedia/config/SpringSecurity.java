@@ -1,38 +1,71 @@
 package com.professor.socialMedia.config;
 
+import com.professor.socialMedia.Security.JwtAuthenticationFilter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
-public class SpringSecurity {
+public class SpringSecurity{
+
+    @Autowired
+    private JwtAuthenticationFilter jwtFilter;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         http
                 .csrf(csrf -> csrf.disable())
+                .sessionManagement(sm ->
+                        sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // PUBLIC ENDPOINTS (TEMPORARY)
+                        // PUBLIC ENDPOINTS
                         .requestMatchers(
-                                "/api/user/**",
-                                "/api/users/**",
-                                "/api/categories/**",
-                                "/api/products/**",
-                                "/api/cart/**",
-                                "/api/orders/**",
-                                "/api/payments/**",
+                                "/auth/**",
+                                "/api/products",
+                                "/api/categories",
+                                "/api/payments/webhook",
                                 "/health"
                         ).permitAll()
 
-                        // EVERYTHING ELSE
+                        // AUTHENTICATED ENDPOINTS
+                        .requestMatchers("/api/user/profile/**")
+                        .authenticated()
+
+                        .requestMatchers("/api/cart/","/api/cart/**")
+                        .authenticated()
+
+                        .requestMatchers("/api/orders/{id}", "/api/order")
+                        .authenticated()
+
+                        .requestMatchers("/api/payment/order")
+                        .authenticated()
+
+                        // ADMIN ENDPOINTS
+                        .requestMatchers("/api/products/**", "/api/categories/add", "/api/order/admin/**")
+                        .hasRole("ADMIN")
+
+                        // ALL OTHER REQUESTS MUST BE AUTHENTICATED
                         .anyRequest().authenticated()
-                );
+                )
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration auth) throws Exception {
+        return auth.getAuthenticationManager();
     }
 }
 

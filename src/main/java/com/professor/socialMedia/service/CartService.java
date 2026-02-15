@@ -43,7 +43,7 @@ public class CartService {
         // Fetch product from DB
         Product product = productRepository.findById(item.getProductId())
                 .orElseThrow(() -> new RuntimeException("Product not found"));
-        if (!product.isActive()) {
+        if (!product.getActive()) {
             throw new RuntimeException("Product is not available");
         }
         // Check stock (do NOT decrement here)
@@ -109,5 +109,11 @@ public class CartService {
         return cartRepository.save(cart);
     }
 
+    public void clearCart(ObjectId userId) {
+        Cart cart = getOrCreateCart(userId);
+        cart.setItems(new ArrayList<>());
+        cart.setUpdatedAt(Instant.now());
+        cartRepository.save(cart);
+    }
 
 }

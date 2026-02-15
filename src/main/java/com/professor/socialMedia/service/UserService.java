@@ -5,6 +5,7 @@ import com.professor.socialMedia.entity.User;
 import com.professor.socialMedia.repository.UserRepository;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
@@ -16,8 +17,11 @@ public class UserService {
 
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     public User createUser(User user) {
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setRole(Role.CUSTOMER);
         return userRepository.save(user);
     }
@@ -34,7 +38,12 @@ public class UserService {
         userRepository.deleteById(id);
     }
 
-    public User findByEmail(String email) {
-        return userRepository.findByEmail(email);
+    public Optional<User> findByEmail(String email) {
+        return Optional.ofNullable(userRepository.findByEmail(email));
     }
+
+    public User updateUser(User user) {
+        return userRepository.save(user);
+    }
+
 }

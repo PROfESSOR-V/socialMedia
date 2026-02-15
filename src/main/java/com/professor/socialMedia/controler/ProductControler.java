@@ -1,15 +1,23 @@
 package com.professor.socialMedia.controler;
 
 
+import com.professor.socialMedia.dto.CreateProductRequest;
+import com.professor.socialMedia.dto.ProductDto;
+import com.professor.socialMedia.dto.UpdateProductRequest;
+import com.professor.socialMedia.dto.mapper.ProductMapper;
+import com.professor.socialMedia.dto.response.ApiResponse;
 import com.professor.socialMedia.entity.Product;
 import com.professor.socialMedia.service.ProductService;
+import jakarta.validation.Valid;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/products")
@@ -18,55 +26,120 @@ public class ProductControler {
     @Autowired
     private ProductService productService;
 
-    //all product now for all user
+    @Autowired
+    private ProductMapper productMapper;
+
+    /**
+     * Get all active products - PUBLIC endpoint
+     */
     @GetMapping
-    public ResponseEntity<List<Product>> listAllProducts() {
+    public ResponseEntity<ApiResponse<List<ProductDto>>> listAllProducts() {
         List<Product> all = productService.findAllActive();
-        return new ResponseEntity<>(all, HttpStatus.OK);
-    }
+        List<ProductDto> dto = all.stream()
+                .map(productMapper::mapProduct)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(ApiResponse.success("Products retrieved successfully", dto));
+    };
 
-    //pruduct find by their product id
+    /**
+     * Get product by ID - PUBLIC endpoint
+     */
     @GetMapping("/{id}")
-    public ResponseEntity<Product> getProductById(@PathVariable ObjectId id) {
+    public ResponseEntity<ApiResponse<ProductDto>> getProductById(@PathVariable ObjectId id) {
         return productService.findById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .map(product -> ResponseEntity.ok(
+                        ApiResponse.success("Product retrieved successfully",
+                                productMapper.mapProduct(product))
+                ))
+                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                        ApiResponse.error("Product not found")
+                ));
     }
 
-    //create a new product only admin can do this
-    @PostMapping
-    public ResponseEntity<Product> createProduct(@RequestBody Product product){
-        Product created =  productService.create(product);
-        return new ResponseEntity<>(created, HttpStatus.CREATED);
+    /**
+     * Create a new product - ADMIN only
+     */
+    @PostMapping("/add")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<ProductDto>> createProduct(
+            @Valid @RequestBody CreateProductRequest request) {
+
+        Product product = new Product();
+        product.setName(request.getName());
+        product.setDescription(request.getDescription());
+        product.setPrice(request.getPrice());
+        product.setCurrency(request.getCurrency());
+        product.setStock(request.getStock());
+        product.setImages(request.getImages());
+        product.setCategoryId(new ObjectId(request.getCategoryId()));
+
+        Product created = productService.create(product);
+        ProductDto productDto = productMapper.mapProduct(created);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(
+                ApiResponse.success("Product created successfully", productDto)
+        );
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Product> updateProduct(@PathVariable ObjectId id, @RequestBody Product newProduct){
-        Product old = productService.findById(id).get();
-        if(old != null){
-            old.setName(newProduct.getName() != null ? newProduct.getName() : old.getName());
-            old.setDescription(newProduct.getDescription() != null ? newProduct.getDescription() : old.getDescription());
-            old.setPrice(newProduct.getPrice() != null ? newProduct.getPrice() : old.getPrice());
-            old.setCurrency(newProduct.getCurrency() != null ? newProduct.getCurrency() : old.getCurrency());
-            old.setStock(newProduct.getStock());
-            old.setImages(newProduct.getImages() != null ? newProduct.getImages() : old.getImages());
-            old.setCategoryId(newProduct.getCategoryId() != null ? newProduct.getCategoryId() : old.getCategoryId()) ;
+    /**
+     * Update product - ADMIN only
+     */
+    @PutMapping("/update/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<ProductDto>> updateProduct(
+            @PathVariable ObjectId id,
+            @Valid @RequestBody UpdateProductRequest request) {
 
-            Product save =   productService.update(old);
-            return new ResponseEntity<>(save, HttpStatus.OK);
+        Product product = productService.findById(id).orElse(null);
+        if (product == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                    ApiResponse.error("Product not found")
+            );
         }
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 
+        // Update only provided fields
+        if (request.getName() != null) {
+            product.setName(request.getName());
+        }
+        if (request.getDescription() != null) {
+            product.setDescription(request.getDescription());
+        }
+        if (request.getPrice() != null) {
+            product.setPrice(request.getPrice());
+        }
+        if (request.getCurrency() != null) {
+            product.setCurrency(request.getCurrency());
+        }
+        if (request.getStock() != null) {
+            product.setStock(request.getStock());
+        }
+        if (request.getImages() != null) {
+            product.setImages(request.getImages());
+        }
+        if (request.getCategoryId() != null) {
+            product.setCategoryId(new ObjectId(request.getCategoryId()));
+        }
+
+        Product updated = productService.update(product);
+        ProductDto productDto = productMapper.mapProduct(updated);
+
+        return ResponseEntity.ok(ApiResponse.success("Product updated successfully", productDto));
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void>  deleteProduct(@PathVariable ObjectId id){
-        Product product = productService.findById(id).get();
-        if(product != null){
-            productService.disable(product.getId());
-            return new ResponseEntity<>(HttpStatus.OK);
+    /**
+     * Delete/Disable product - ADMIN only
+     */
+    @DeleteMapping("/del/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<Void>>  deleteProduct(@PathVariable ObjectId id){
+        Product product = productService.findById(id).orElse(null);
+        if (product == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                    ApiResponse.error("Product not found")
+            );
         }
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        productService.disable(id);
+        return ResponseEntity.ok(ApiResponse.success("Product deleted successfully", null));
     }
 
 
