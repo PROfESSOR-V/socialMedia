@@ -15,7 +15,7 @@ import java.util.Date;
 @Service
 public class JwtService {
 
-    private final String SECRET = "lfRExohw9uk3CEk6mwZws4hqkMW68DNu4KD6f1zOgB0=";
+    private final String SECRET = "xyz - 32 byte key ";
     private final long EXPIRY = 1000 * 60* 60 * 24; // 1 day
 
     private Key getSigningKey() {
