@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { ShoppingBag, Search, User, Heart, Globe, Menu } from "lucide-react";
+import { ShoppingBag, Search, User, Heart, Globe, Menu, Package } from "lucide-react";
 import { useStore } from "@/store/useStore";
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
@@ -200,9 +200,9 @@ export default function Header() {
             <Search className="h-4 w-4" />
           </button>
           
-          <button className="hover:text-black transition-colors hidden sm:block">
-            <Heart className="h-4 w-4" />
-          </button>
+           <Link href="/orders" className="hover:text-black transition-colors hidden sm:block">
+            <Package className="h-4 w-4" />
+          </Link>
 
           <button onClick={toggleCart} className="relative hover:text-black transition-colors">
             <ShoppingBag className="h-4 w-4" />

@@ -41,11 +41,31 @@ export const api = {
       const { data } = await apiClient.post("/api/orders");
       return data?.data || data || null;
     },
+    list: async () => {
+      const { data } = await apiClient.get("/api/orders");
+      return Array.isArray(data) ? data : data?.data || [];
+    },
+    get: async (id: string) => {
+      const { data } = await apiClient.get(`/api/orders/${id}`);
+      return data?.data || data || null;
+    }
   },
   payments: {
-    createIntent: async (orderId: string, provider: string = "dummy") => {
-      const { data } = await apiClient.post("/api/payments/order", { orderId, provider });
+    createIntent: async (orderId: string, provider: string = "CASHFREE", returnUrl?: string) => {
+      const { data } = await apiClient.post("/api/payments/order", { orderId, provider, returnUrl });
       return data?.data || data || null;
+    }
+  },
+  user: {
+    profile: {
+      get: async () => {
+        const { data } = await apiClient.get("/api/user/profile");
+        return data?.data || data || null;
+      },
+      update: async (profileData: any) => {
+        const { data } = await apiClient.put("/api/user/profile", profileData);
+        return data?.data || data || null;
+      }
     }
   }
 };

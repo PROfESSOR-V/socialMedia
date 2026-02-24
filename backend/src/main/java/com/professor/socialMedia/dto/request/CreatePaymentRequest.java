@@ -6,4 +6,5 @@ import lombok.Data;
 public class CreatePaymentRequest {
     private String orderId;
     private String provider;
+    private String returnUrl;
 }

@@ -16,19 +16,70 @@ export default function CheckoutPage() {
   const { cart, clearCart } = useStore();
   const total = cart.reduce((acc, item) => acc + item.price * item.quantity, 0);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [profile, setProfile] = useState<any>(null);
+  const [loadingProfile, setLoadingProfile] = useState(true);
+  const [mobileNumber, setMobileNumber] = useState("");
+  const [selectedAddressIndex, setSelectedAddressIndex] = useState(0);
+  const [isAddingNewAddress, setIsAddingNewAddress] = useState(false);
+  
+  const [newAddress, setNewAddress] = useState({
+    name: "",
+    phoneNumber: "",
+    street: "",
+    city: "",
+    state: "",
+    zip: "",
+    country: "India"
+  });
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const data = await api.user.profile.get();
+        if (data) {
+          setProfile(data);
+          if (data.mobileNumber) setMobileNumber(data.mobileNumber);
+          if (!data.addresses || data.addresses.length === 0) {
+            setIsAddingNewAddress(true);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load profile", err);
+      } finally {
+        setLoadingProfile(false);
+      }
+    };
+    fetchProfile();
+  }, []);
+
+  const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setNewAddress({ ...newAddress, [e.target.name]: e.target.value });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsProcessing(true);
     
     try {
+      // 0. Update Profile if needed
+      if ((mobileNumber && mobileNumber !== profile?.mobileNumber) || isAddingNewAddress) {
+        let updatedAddresses = profile?.addresses || [];
+        if (isAddingNewAddress) {
+          updatedAddresses = [...updatedAddresses, newAddress];
+        }
+        await api.user.profile.update({
+          mobileNumber,
+          addresses: updatedAddresses
+        });
+      }
       // 1. Create order from cart && Get Cashfree Session
       const orderResponse = await api.orders.createFromCart();
       const orderId = orderResponse?.id || orderResponse?._id;
       
       // 2. Create Payment Intent (Cashfree Order)
       if (orderId) {
-        const paymentRes = await api.payments.createIntent(orderId, "CASHFREE");
+        const returnUrl = window.location.origin + "/orders/success";
+        const paymentRes = await api.payments.createIntent(orderId, "CASHFREE", returnUrl);
         
         // Extract payment_session_id from the backend map response
         // Expected from Backend: { message, data: { payment_session_id: "...", order_id: "..." } }
@@ -103,21 +154,58 @@ export default function CheckoutPage() {
         <form onSubmit={handleSubmit} className="space-y-8">
           <section>
             <h2 className="mb-4 text-lg font-medium">Contact Information</h2>
-            <Input type="email" placeholder="Email address" required />
+            <div className="space-y-4">
+              <Input type="email" value={profile?.email || ""} disabled placeholder="Email address" />
+              <Input 
+                type="tel" 
+                placeholder="Mobile Number" 
+                value={mobileNumber}
+                onChange={(e) => setMobileNumber(e.target.value)}
+                required 
+              />
+            </div>
           </section>
 
           <section>
-            <h2 className="mb-4 text-lg font-medium">Shipping Address</h2>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Input placeholder="First name" required />
-              <Input placeholder="Last name" required />
-              <Input className="sm:col-span-2" placeholder="Address" required />
-              <Input placeholder="City" required />
-              <div className="grid grid-cols-2 gap-4">
-                <Input placeholder="State" required />
-                <Input placeholder="ZIP code" required />
-              </div>
+            <div className="flex justify-between items-center mb-4">
+               <h2 className="text-lg font-medium">Shipping Address</h2>
+               {profile?.addresses?.length > 0 && (
+                 <Button type="button" variant="outline" size="sm" onClick={() => setIsAddingNewAddress(!isAddingNewAddress)}>
+                   {isAddingNewAddress ? "Cancel" : "Add New +"}
+                 </Button>
+               )}
             </div>
+
+            {profile?.addresses?.length > 0 && !isAddingNewAddress ? (
+              <div className="space-y-3">
+                {profile.addresses.map((addr: any, idx: number) => (
+                  <div 
+                    key={idx} 
+                    className={`p-4 border rounded-md cursor-pointer transition-colors ${selectedAddressIndex === idx ? 'border-primary bg-primary/5' : 'hover:border-primary/50'}`}
+                    onClick={() => setSelectedAddressIndex(idx)}
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="font-medium">{addr.name}</span>
+                      <span className="text-sm text-muted-foreground">{addr.phoneNumber}</span>
+                    </div>
+                    <p className="text-sm text-muted-foreground">{addr.street}, {addr.city}</p>
+                    <p className="text-sm text-muted-foreground">{addr.state} - {addr.zip}, {addr.country}</p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Input name="name" value={newAddress.name} onChange={handleAddressChange} className="sm:col-span-2" placeholder="Full name" required />
+                <Input name="phoneNumber" value={newAddress.phoneNumber} onChange={handleAddressChange} className="sm:col-span-2" placeholder="Phone Number" required />
+                <Input name="street" value={newAddress.street} onChange={handleAddressChange} className="sm:col-span-2" placeholder="Street Address" required />
+                <Input name="city" value={newAddress.city} onChange={handleAddressChange} placeholder="City" required />
+                <div className="grid grid-cols-2 gap-4">
+                  <Input name="state" value={newAddress.state} onChange={handleAddressChange} placeholder="State" required />
+                  <Input name="zip" value={newAddress.zip} onChange={handleAddressChange} placeholder="ZIP code" required />
+                </div>
+                <Input name="country" value={newAddress.country} onChange={handleAddressChange} className="sm:col-span-2" placeholder="Country" required />
+              </div>
+            )}
           </section>
 
           <section>
@@ -126,10 +214,9 @@ export default function CheckoutPage() {
               <Lock className="mb-2 h-4 w-4" />
               You will be redirected securely to Cashfree Payments.
             </div>
-            {/* Mock Stripe Element placeholder removed */}
           </section>
 
-          <Button type="submit" size="lg" className="w-full" disabled={isProcessing}>
+          <Button type="submit" size="lg" className="w-full" disabled={isProcessing || loadingProfile}>
             {isProcessing ? "Processing..." : `Pay ${formatPrice(total)}`}
           </Button>
         </form>

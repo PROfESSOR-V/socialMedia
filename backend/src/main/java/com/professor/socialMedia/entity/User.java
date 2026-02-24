@@ -1,16 +1,15 @@
 package com.professor.socialMedia.entity;
 
-import lombok.Data;
-import lombok.NonNull;
+import java.time.Instant;
+import java.util.List;
+
 import org.bson.types.ObjectId;
-import org.springframework.context.annotation.Bean;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.time.Instant;
-import java.util.List;
-
+import lombok.Data;
+import lombok.NonNull;
 
 @Document(collection = "users")
 @Data
@@ -28,7 +27,9 @@ public class User {
 
     private Role role = Role.CUSTOMER;
 
+    private String mobileNumber;
+
     private List<Address> addresses;
 
-    private Instant  createdAt =  Instant.now();
+    private Instant createdAt = Instant.now();
 }
