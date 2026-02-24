@@ -1,13 +1,32 @@
-HELP.md
+# ===============================
+# Maven / Build
+# ===============================
 target/
-.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
-# Ignore application properties files
-**/application.properties
-**/application-*.properties
 
-### STS ###
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+.mvn/wrapper/maven-wrapper.jar
+
+# ===============================
+# Logs
+# ===============================
+*.log
+
+# ===============================
+# Environment / Secrets (IMPORTANT)
+# ===============================
+.env
+.env.*
+application-local.properties
+application-dev.properties
+
+# ===============================
+# IDE - STS
+# ===============================
 .apt_generated
 .classpath
 .factorypath
@@ -16,25 +35,30 @@ target/
 .springBeans
 .sts4-cache
 
-### IntelliJ IDEA ###
-.idea
+# ===============================
+# IntelliJ IDEA
+# ===============================
+.idea/
 *.iws
 *.iml
 *.ipr
 
-### NetBeans ###
+# ===============================
+# VS Code
+# ===============================
+.vscode/
+
+# ===============================
+# NetBeans
+# ===============================
 /nbproject/private/
 /nbbuild/
 /dist/
 /nbdist/
 /.nb-gradle/
-build/
-!**/src/main/**/build/
-!**/src/test/**/build/
 
-### VS Code ###
-.vscode/
-
-
-
-
+# ===============================
+# OS Files
+# ===============================
+.DS_Store
+Thumbs.db
