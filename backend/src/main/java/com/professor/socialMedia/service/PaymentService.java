@@ -1,6 +1,5 @@
 package com.professor.socialMedia.service;
 
-
 import com.professor.socialMedia.dto.request.PaymentWebhookRequest;
 import com.professor.socialMedia.entity.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -41,11 +40,11 @@ public class PaymentService {
     private String webhookSecret;
 
     public Payment createPayment(ObjectId orderId, ObjectId userId, String provider) {
-        Order order =  orderRepository
+        Order order = orderRepository
                 .findByIdAndUserId(orderId, userId)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
 
-        if(order.getStatus() != OrderStatus.PENDING && order.getStatus() != OrderStatus.CREATED) {
+        if (order.getStatus() != OrderStatus.PENDING && order.getStatus() != OrderStatus.CREATED) {
             throw new IllegalStateException("Order id not payable.");
         }
         Payment payment = new Payment();
@@ -58,10 +57,10 @@ public class PaymentService {
     }
 
     @Transactional
-    public void handleWebhook(String payload, String signature) {
+    public void handleWebhook(String payload, String signature, String timestamp) {
 
         // 1. Verify Cashfree signature
-        if (!verifySignature(signature, payload)) {
+        if (!verifySignature(signature, payload, timestamp)) {
             throw new RuntimeException("Invalid payment signature");
         }
 
@@ -84,8 +83,7 @@ public class PaymentService {
             boolean success = "SUCCESS".equalsIgnoreCase(reqStatus);
 
             // 2. Idempotency check
-            Optional<Payment> existing =
-                    paymentRepository.findByProviderPaymentId(providerPaymentId);
+            Optional<Payment> existing = paymentRepository.findByProviderPaymentId(providerPaymentId);
 
             if (existing.isPresent()) {
                 return; // already processed
@@ -142,26 +140,37 @@ public class PaymentService {
         }
     }
 
+    private boolean verifySignature(String signature, String payload, String timestamp) {
+        try {
+            String dataToVerify = (timestamp != null ? timestamp : "") + payload;
+            javax.crypto.Mac mac = javax.crypto.Mac.getInstance("HmacSHA256");
+            javax.crypto.spec.SecretKeySpec secretKeySpec = new javax.crypto.spec.SecretKeySpec(
+                    webhookSecret.getBytes(java.nio.charset.StandardCharsets.UTF_8), "HmacSHA256");
+            mac.init(secretKeySpec);
+            byte[] hash = mac.doFinal(dataToVerify.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            String generated = java.util.Base64.getEncoder().encodeToString(hash);
 
-    private boolean verifySignature(String signature, String payload) {
-        String generated = HmacUtils.hmacSha256Hex(webhookSecret, payload);
-        return generated.equals(signature);
+            System.out.println("Webhook verification: expected=" + signature + " generated=" + generated);
+            return generated.equals(signature);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
-//    private String extractPaymentId(String payload) {
-//        // TEMP: parse from payload JSON
-//        return "dummy_provider_payment_id";
-//    }
-//
-//    private ObjectId extractOrderId(String payload) {
-//        // TEMP: parse from payload JSON
-//        return new ObjectId();
-//    }
-//
-//    private boolean extractPaymentStatus(String payload) {
-//        // TEMP: assume success
-//        return true;
-//    }
+    // private String extractPaymentId(String payload) {
+    // // TEMP: parse from payload JSON
+    // return "dummy_provider_payment_id";
+    // }
+    //
+    // private ObjectId extractOrderId(String payload) {
+    // // TEMP: parse from payload JSON
+    // return new ObjectId();
+    // }
+    //
+    // private boolean extractPaymentStatus(String payload) {
+    // // TEMP: assume success
+    // return true;
+    // }
 
 }
-

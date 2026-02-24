@@ -1,9 +1,8 @@
 package com.professor.socialMedia.dto.mapper;
 
-import org.springframework.stereotype.Component;
-
 import com.professor.socialMedia.dto.UserDto;
 import com.professor.socialMedia.entity.User;
+import org.springframework.stereotype.Component;
 
 @Component
 public class UserMapper {

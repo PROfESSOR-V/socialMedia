@@ -1,15 +1,15 @@
 package com.professor.socialMedia.entity;
 
-import java.time.Instant;
-import java.util.List;
-
+import lombok.Data;
+import lombok.NonNull;
 import org.bson.types.ObjectId;
+import org.springframework.context.annotation.Bean;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import lombok.Data;
-import lombok.NonNull;
+import java.time.Instant;
+import java.util.List;
 
 @Document(collection = "users")
 @Data
