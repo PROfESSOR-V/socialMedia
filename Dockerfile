@@ -2,7 +2,7 @@
 FROM maven:3.8.1-openjdk-17 AS builder
 WORKDIR /app
 COPY . .
-RUN cd backend && mvn clean package -DskipTests
+RUN mvn -f pom.xml clean package -DskipTests
 
 # Runtime stage
 FROM eclipse-temurin:17-jdk-alpine
