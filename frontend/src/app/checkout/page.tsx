@@ -13,7 +13,7 @@ import { useState, useEffect } from "react";
 import Script from "next/script";
 
 export default function CheckoutPage() {
-  const { cart, clearCart } = useStore();
+  const { cart, clearCart, showMessageModal } = useStore();
   const total = cart.reduce((acc, item) => acc + item.price * item.quantity, 0);
   const [isProcessing, setIsProcessing] = useState(false);
   const [profile, setProfile] = useState<any>(null);
@@ -108,7 +108,7 @@ export default function CheckoutPage() {
       console.error(error);
       const resData = error?.response?.data;
       const errorMsg = typeof resData === 'string' ? resData : (resData?.message || resData?.error || error.message);
-      alert(errorMsg || "Failed to place order. Check network.");
+      showMessageModal("Payment Failed", errorMsg || "Failed to place order. Check your network or try again.", true);
     } finally {
       setIsProcessing(false);
     }
@@ -235,27 +235,29 @@ export default function CheckoutPage() {
           </h2>
           <div className="space-y-6">
             {cart.map((item) => (
-              <div key={item.id} className="flex items-center gap-4">
-                <div className="relative h-16 w-16 overflow-hidden rounded-md border bg-white">
+              <div key={item.id} className="flex gap-4 p-4 bg-white rounded-xl shadow-sm border border-zinc-100 items-center">
+                <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-[#e8e8e1]">
                   <Image
                     src={item.image}
                     alt={item.name}
                     fill
-                    className="object-cover"
+                    className="object-contain p-2"
                   />
-                  <span className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs text-white">
+                  <span className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-zinc-900 text-xs font-semibold text-white shadow-md z-10">
                     {item.quantity}
                   </span>
                 </div>
-                <div className="flex-1">
-                  <h3 className="text-sm font-medium">{item.name}</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {formatPrice(item.price)}
+                <div className="flex flex-1 flex-col justify-center">
+                  <h3 className="text-sm font-semibold text-zinc-900 leading-tight mb-1">{item.name}</h3>
+                  <p className="text-xs text-zinc-500 mb-2">
+                    {formatPrice(item.price)} each
                   </p>
                 </div>
-                <p className="font-medium text-foreground">
-                  {formatPrice(item.price * item.quantity)}
-                </p>
+                <div className="text-right flex flex-col justify-center shrink-0">
+                  <p className="font-medium text-zinc-900">
+                    {formatPrice(item.price * item.quantity)}
+                  </p>
+                </div>
               </div>
             ))}
           </div>

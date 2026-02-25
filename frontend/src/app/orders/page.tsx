@@ -3,9 +3,10 @@
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { formatPrice } from "@/lib/utils";
+import { useStore } from "@/store/useStore";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Package, ChevronLeft } from "lucide-react";
+import { Package, ChevronLeft, XCircle } from "lucide-react";
 
 interface OrderItem {
   productId: string;
@@ -23,8 +24,10 @@ interface Order {
 }
 
 export default function OrdersPage() {
+  const { showMessageModal } = useStore();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [canceling, setCanceling] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -44,6 +47,28 @@ export default function OrdersPage() {
 
     fetchOrders();
   }, []);
+
+  const handleCancelOrder = async (orderId: string) => {
+    try {
+      setCanceling(orderId);
+      const updatedOrder = await api.orders.cancel(orderId);
+      
+      setOrders(current => current.map(o => o.id === orderId ? { ...o, status: updatedOrder.status } : o));
+      showMessageModal(
+        "Order Cancelled", 
+        "Your order has been successfully cancelled. If you already paid, the refund will be processed within 5-7 business days."
+      );
+    } catch (error: any) {
+      console.error("Failed to cancel order:", error);
+      showMessageModal(
+        "Cancellation Failed", 
+        error?.response?.data?.message || "There was a problem cancelling your order. Please try again.", 
+        true
+      );
+    } finally {
+      setCanceling(null);
+    }
+  };
 
   if (loading) {
     return (
@@ -119,12 +144,38 @@ export default function OrdersPage() {
                     <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-medium text-primary">
                       {item.quantity}
                     </span> 
-                    <span className="font-medium">{item.name}</span>
+                    <Link href={`/products/${item.productId}`} className="font-medium hover:underline hover:text-primary transition-colors">
+                      {item.name}
+                    </Link>
                   </span>
-                  <span className="text-muted-foreground">{formatPrice(item.price * item.quantity)}</span>
+                  <div className="text-right">
+                    <span className="text-xs text-muted-foreground mr-2">{formatPrice(item.price)} each</span>
+                    <span className="text-muted-foreground font-medium">{formatPrice(item.price * item.quantity)}</span>
+                  </div>
                 </div>
               ))}
             </div>
+
+            {/* Cancel Order Section */}
+            {(order.status === 'PENDING' || order.status === 'PAID') && (
+              <div className="mt-6 pt-4 border-t flex justify-end">
+                <Button 
+                  variant="destructive" 
+                  size="sm" 
+                  onClick={() => handleCancelOrder(order.id)}
+                  disabled={canceling === order.id}
+                  className="flex items-center gap-2"
+                >
+                  {canceling === order.id ? (
+                    <span className="animate-pulse">Cancelling...</span>
+                  ) : (
+                    <>
+                      <XCircle className="h-4 w-4" /> Cancel Order
+                    </>
+                  )}
+                </Button>
+              </div>
+            )}
           </div>
         ))}
       </div>

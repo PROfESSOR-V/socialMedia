@@ -5,7 +5,7 @@ import { formatPrice } from "@/lib/utils";
 import { useStore } from "@/store/useStore";
 import { Minus, Plus, Leaf, Rabbit, HeartHandshake, Truck, Info, Droplets, Loader2 } from "lucide-react";
 import Image from "next/image";
-import { notFound } from "next/navigation";
+import { notFound, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import apiClient from "@/lib/apiClient";
@@ -13,9 +13,10 @@ import apiClient from "@/lib/apiClient";
 export default function ProductPage({ params }: { params: { id: string } }) {
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const { addToCart } = useStore();
+  const { addToCart, token, setAuthModalOpen } = useStore();
   const [quantity, setQuantity] = useState(1);
   const [selectedSize, setSelectedSize] = useState("50ml");
+  const router = useRouter();
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -44,6 +45,11 @@ export default function ProductPage({ params }: { params: { id: string } }) {
   }
 
   const handleAddToCart = () => {
+    if (!token) {
+      setAuthModalOpen(true);
+      return;
+    }
+    
     addToCart({ 
        id: product.id, 
        name: product.name, 

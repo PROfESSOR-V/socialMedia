@@ -11,8 +11,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-
 
 @Service
 @Transactional
@@ -25,26 +23,25 @@ public class OrderService {
     @Autowired
     private ProductRepository productRepository;
 
-
-    public Order createFromCart(ObjectId userId){
+    public Order createFromCart(ObjectId userId) {
         Cart cart = cartRepository.findByUserIdAndStatus(userId, CartStatus.ACTIVE)
                 .orElseThrow(() -> new RuntimeException("Cart not found or not active"));
 
-        if( cart.getItems() == null ||  cart.getItems().isEmpty() ){
+        if (cart.getItems() == null || cart.getItems().isEmpty()) {
             throw new IllegalArgumentException("Cart is empty");
         }
 
         List<OrderItem> orderItems = new ArrayList<>();
         double totalPrice = 0;
 
-        for( CartItem ci : cart.getItems() ){
+        for (CartItem ci : cart.getItems()) {
             Product p = productRepository.findById(ci.getProductId())
                     .orElseThrow(() -> new RuntimeException("Product not found" + ci.getProductId()));
 
-            if( !p.getActive()){
+            if (!p.getActive()) {
                 throw new RuntimeException("Product is not active");
             }
-            if(ci.getQuantity()<=0){
+            if (ci.getQuantity() <= 0) {
                 throw new IllegalArgumentException("Invalid quantity");
             }
 
@@ -67,17 +64,19 @@ public class OrderService {
         order.setCartId(cart.getId());
 
         Order saved = orderRepository.save(order);
-        cart.setStatus(CartStatus.CONVERTED);
-        cartRepository.save(cart);
+        // Do NOT convert cart here so users can retry payment if they cancel.
+        // Webhook handles clearing items on success.
+        // cart.setStatus(CartStatus.CONVERTED);
+        // cartRepository.save(cart);
 
         return saved;
     }
 
-    public List<Order> findByUserId(ObjectId id){
+    public List<Order> findByUserId(ObjectId id) {
         return orderRepository.findByUserId(id);
     }
 
-    public Order findById(ObjectId id){
+    public Order findById(ObjectId id) {
         return orderRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
     }
@@ -85,5 +84,26 @@ public class OrderService {
     public Order findByIdAndUserId(ObjectId objectId, ObjectId id) {
         return orderRepository.findByIdAndUserId(objectId, id)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
+    }
+
+    public Order cancelOrder(Order order) {
+        if (order.getStatus() == OrderStatus.DELIVERED || order.getStatus() == OrderStatus.CANCELLED) {
+            throw new RuntimeException("Order cannot be cancelled in its current state: " + order.getStatus());
+        }
+
+        boolean wasPaid = order.getStatus() == OrderStatus.PAID;
+        order.setStatus(OrderStatus.CANCELLED);
+        Order savedOrder = orderRepository.save(order);
+
+        if (wasPaid) {
+            // Refund stock if the order was already paid
+            for (OrderItem item : order.getItems()) {
+                productRepository.findById(item.getProductId()).ifPresent(p -> {
+                    p.setStock(p.getStock() + item.getQuantity());
+                    productRepository.save(p);
+                });
+            }
+        }
+        return savedOrder;
     }
 }

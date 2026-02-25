@@ -6,12 +6,14 @@ import { Button } from "@/components/ui/button";
 import { formatPrice } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { ShoppingBag } from "lucide-react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import apiClient from "@/lib/apiClient";
 
 export default function ProductGrid() {
-  const { addToCart } = useStore();
+  const { addToCart, token, setAuthModalOpen } = useStore();
   const [products, setProducts] = useState<any[]>([]);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -49,7 +51,13 @@ export default function ProductGrid() {
             <Button
               size="icon"
               className="absolute bottom-4 right-4 translate-y-12 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 rounded-full shadow-lg"
-              onClick={() => addToCart({ ...product, image: product.mainImage || product.imageUrls?.[0] || product.imageUrl || "/assets/placeholder.png", quantity: 1 })}
+              onClick={() => {
+                if (!token) {
+                  setAuthModalOpen(true);
+                  return;
+                }
+                addToCart({ ...product, image: product.mainImage || product.imageUrls?.[0] || product.imageUrl || "/assets/placeholder.png", quantity: 1 });
+              }}
             >
               <ShoppingBag className="h-4 w-4" />
             </Button>

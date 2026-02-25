@@ -3,6 +3,8 @@ import { usePathname } from "next/navigation";
 import Header from "./Header";
 import Footer from "./Footer";
 import CartDrawer from "../features/CartDrawer";
+import AuthModal from "../ui/AuthModal";
+import MessageModal from "../ui/MessageModal";
 import PageTransition from "./PageTransition";
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
@@ -17,6 +19,8 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     <>
       <Header />
       <CartDrawer />
+      <AuthModal />
+      <MessageModal />
       <PageTransition>
         <main className="min-h-screen">{children}</main>
       </PageTransition>

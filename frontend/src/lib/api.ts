@@ -48,6 +48,10 @@ export const api = {
     get: async (id: string) => {
       const { data } = await apiClient.get(`/api/orders/${id}`);
       return data?.data || data || null;
+    },
+    cancel: async (id: string) => {
+      const { data } = await apiClient.put(`/api/orders/${id}/cancel`);
+      return data?.data || data || null;
     }
   },
   payments: {

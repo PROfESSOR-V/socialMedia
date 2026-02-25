@@ -26,6 +26,15 @@ interface StoreState {
   setLogout: () => void;
   setUser: (user: User) => void;
 
+  // Auth Modal State
+  isAuthModalOpen: boolean;
+  setAuthModalOpen: (open: boolean) => void;
+
+  // Global Message Modal State
+  messageModal: { isOpen: boolean; title: string; message: string; isError?: boolean };
+  showMessageModal: (title: string, message: string, isError?: boolean) => void;
+  hideMessageModal: () => void;
+
   // Cart State
   cart: CartItem[];
   isCartOpen: boolean;
@@ -46,6 +55,17 @@ export const useStore = create<StoreState>()(
       setLogin: (token, user) => set({ token, user }),
       setLogout: () => set({ token: null, user: null }),
       setUser: (user) => set({ user }),
+
+      // Auth Modal INITIAL STATE
+      isAuthModalOpen: false,
+      setAuthModalOpen: (open) => set({ isAuthModalOpen: open }),
+
+      // Global Message Modal INITIAL STATE
+      messageModal: { isOpen: false, title: "", message: "", isError: false },
+      showMessageModal: (title, message, isError = false) => 
+          set({ messageModal: { isOpen: true, title, message, isError } }),
+      hideMessageModal: () => 
+          set((state) => ({ messageModal: { ...state.messageModal, isOpen: false } })),
 
       // Cart INITIAL STATE
       cart: [],
@@ -72,17 +92,17 @@ export const useStore = create<StoreState>()(
           if (existingItem) {
             return {
               cart: state.cart.map((i) =>
-                i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i
+                i.id === item.id ? { ...i, quantity: i.quantity + item.quantity } : i
               ),
               isCartOpen: true,
             };
           }
-          return { cart: [...state.cart, { ...item, quantity: 1 }], isCartOpen: true };
+          return { cart: [...state.cart, { ...item, quantity: item.quantity }], isCartOpen: true };
         });
 
         // Sync with backend if logged in
         try {
-          await api.cart.add(item.id, 1);
+          await api.cart.add(item.id, item.quantity);
         } catch (error) {
           console.error("Failed to sync cart add", error);
         }
