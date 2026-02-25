@@ -1,0 +1,1544 @@
+API Documentation
+Base URL: https://shipping-api.com/app/api/v1
+
+Authentication
+All API requests must include both a public-key and private-key in the request headers. You can obtain
+these keys by either:
+1. Using the login API.
+2. Logging into the panel and checking the user profile section, where the public-key and private-key are
+provided.
+
+Important: Ensure that the API URL does not have a trailing slash (/) at the end. It can lead to CORS issue
+
+Info API
+Method: GET
+This API checks whether the API is currently operational.
+Endpoint:
+https://shipping-api.com/app/api/v1/info
+
+Response:
+Field
+result
+
+Type
+
+Description
+
+string "1" for success, "0" for failure.
+
+message string Success or error message.
+data
+
+object Contains additional information about the API.
+
+Response Example:
+{
+"result": "1",
+"message": "Success",
+"data": {
+"Info": "Hello External V1 Api World!"
+}
+}
+
+Push-Order API
+Method: POST
+
+This API pushes order details to the Shipmozo panel.
+Key Points:
+1. The order_id must match the one created on your website.
+2. The warehouse_id can be fetched using the Get-Warehouses API or created using the Create-Warehouse API.
+Endpoint:
+https://shipping-api.com/app/api/v1/push-order
+
+Request Body:
+Parameter
+
+Type Required
+
+Description
+
+order_id
+
+string
+
+Yes
+
+Unique order identifier.
+
+order_date
+
+string
+
+Yes
+
+Date of the order in YYYY-MM-DD format.
+
+order_type
+
+string
+
+No
+
+Type of order (e.g., ESSENTIALS & NON
+ESSENTIALS).
+
+consignee_name
+
+string
+
+Yes
+
+Name of the consignee.
+
+consignee_phone
+
+number Yes
+
+Phone number of the consignee.
+
+consignee_alternate_phone
+
+number No
+
+Alternate phone number of the consignee.
+
+consignee_email
+
+string
+
+No
+
+Email address of the consignee.
+
+consignee_address_line_one
+
+string
+
+Yes
+
+First line of the consignee's address.
+
+consignee_address_line_two
+
+string
+
+No
+
+Second line of the consignee's address.
+
+consignee_pin_code
+
+number Yes
+
+Pin code of the consignee's location.
+
+consignee_city
+
+string
+
+Yes
+
+City of the consignee.
+
+consignee_state
+
+string
+
+Yes
+
+State of the consignee.
+
+product_detail
+
+array
+
+Yes
+
+Product details (name, quantity, price, etc.).
+
+payment_type
+
+string
+
+Yes
+
+Payment method (PREPAID or COD).
+
+cod_amount
+
+string
+
+No
+
+COD amount (if applicable).
+
+weight
+
+number Yes
+
+Weight of the shipment in grams.
+
+length, width, height
+
+number Yes
+
+Dimensions of the shipment.
+
+warehouse_id
+
+string
+
+Yes
+
+Warehouse ID (fetched from the Get-Warehouses API).
+
+gst_ewaybill_number,
+gstin_number
+
+string
+
+No
+
+GST-related fields (if applicable).
+
+Example:
+{
+"order_id": "ordID",
+"order_date": "2024-01-06",
+"order_type": "ESSENTIALS",
+"consignee_name": "John",
+"consignee_phone": 8000042323,
+"consignee_alternate_phone": 8000042323,
+"consignee_email": "johnhelp@gmail.com",
+"consignee_address_line_one": "Sector 49",
+"consignee_address_line_two": "Sohna Road",
+"consignee_pin_code": 122001,
+
+"consignee_city": "Gurgaon",
+"consignee_state": "Haryana",
+"product_detail": [
+{
+"name": "Laptop",
+"sku_number": "22",
+"quantity": 1,
+"discount": "",
+"hsn": "#123",
+"unit_price": 1000,
+"product_category": "Other"
+}
+],
+"payment_type": "PREPAID",
+"cod_amount": "",
+"weight": 200,
+"length": 10,
+"width": 20,
+"height": 15,
+"warehouse_id": "",
+"gst_ewaybill_number": "",
+"gstin_number": ""
+}
+
+Response:
+Field
+result
+
+Type
+
+Description
+
+string "1" for success, "0" for failure.
+
+message string Success or error message.
+data
+
+object Contains the pushed order details, including order_id and reference_id.
+
+Example:
+{
+"result": "1",
+"message": "Success",
+"data": {
+"Info": "Order Pushed Successfully",
+"order_id": "ordID",
+"reference_id": "ordID"
+}
+}
+
+Push-Return-Order API
+Method: POST
+This API is used to push return order details to the Shipmozo panel. The return order includes pickup details,
+product details, and the reason for the return.
+Endpoint:
+https://shipping-api.com/app/api/v1/push-return-order
+
+Request Body:
+Parameter
+
+Type Required
+
+Description
+
+order_id
+
+string
+
+Yes
+
+The unique identifier for the order being returned.
+
+order_date
+
+string
+
+Yes
+
+The date when the order was placed (format: YYYY-MM-DD).
+
+order_type
+
+string
+
+No
+
+The type of order (e.g., "ESSENTIALS").
+
+pickup_name
+
+string
+
+Yes
+
+The name of the person for pickup.
+
+pickup_phone
+
+number Yes
+
+The phone number of the person for pickup.
+
+pickup_email
+
+string
+
+No
+
+The email of the person for pickup.
+
+pickup_address_line_one string
+
+Yes
+
+The primary address for pickup.
+
+pickup_address_line_two string
+
+No
+
+The secondary address for pickup (if any).
+
+pickup_pin_code
+
+number Yes
+
+The pincode for the pickup location.
+
+pickup_city
+
+string
+
+Yes
+
+The city for the pickup location.
+
+pickup_state
+
+string
+
+Yes
+
+The state for the pickup location.
+
+product_detail
+
+array
+
+Yes
+
+A list of product details being returned (name, SKU, price, etc.).
+
+payment_type
+
+string
+
+Yes
+
+The payment type (e.g., "PREPAID").
+
+weight
+
+number Yes
+
+The weight of the return package (in kg).
+
+length
+
+number Yes
+
+The length of the package (in cm).
+
+width
+
+number Yes
+
+The width of the package (in cm).
+
+height
+
+number Yes
+
+The height of the package (in cm).
+
+warehouse_id
+
+string
+
+The warehouse identifier (if applicable).
+
+return_reason_id
+
+number Yes
+
+The reason ID for returning the order (use /get-return-reason
+API to get reason IDs).
+
+customer_request
+
+string
+
+Yes
+
+The customer's request for the return (e.g., "REFUND")
+
+reason_comment
+
+string
+
+No
+
+Additional comments or details about the return.
+
+No
+
+Example:
+{
+"order_id": "ordID",
+"order_date": "2024-07-27",
+"order_type": "ESSENTIALS",
+"pickup_name": "John",
+"pickup_phone": 8000042323,
+"pickup_email": "johnhelp@gmail.com",
+"pickup_address_line_one": "Sector 49",
+"pickup_address_line_two": "Sohna Road",
+"pickup_pin_code": 122001,
+"pickup_city": "Gurgaon",
+"pickup_state": "Haryana",
+"product_detail": [
+{
+"name": "Product Name",
+"sku_number": "22",
+"quantity": 1,
+"discount": "",
+"hsn": "#123",
+"unit_price": 1000,
+"product_category": "Other"
+}
+
+],
+"payment_type": "PREPAID",
+"weight": 2,
+"length": 10,
+"width": 500,
+"height": 15,
+"warehouse_id": "",
+"return_reason_id": 9,
+"customer_request": "REFUND",
+"reason_comment": ""
+}
+
+Response:
+Field
+result
+
+Type
+
+Description
+
+string "1" for success, "0" for failure.
+
+message string Success or error message.
+data
+
+object Contains order details, including order_id and reference_id.
+
+Example:
+{
+"result": "1",
+"message": "Success",
+"data": {
+"Info": "Order Pushed Successfully",
+"order_id": "ordID",
+"reference_id": "ordID"
+}
+}
+
+Assign-Courier API
+Method: POST
+This API assigns a courier to an order in the Shipmozo panel.
+Key Points:
+1. The order_id must match the one received from the Push-Order API.
+2. The courier_id can be obtained using the Rate-Calculator API.
+Endpoint:
+https://shipping-api.com/app/api/v1/assign-courier
+
+Request Body:
+Parameter
+
+Type Required
+
+order_id
+
+string
+
+Yes
+
+courier_id number Yes
+
+Example:
+{
+"order_id": "test123",
+
+Description
+Unique order identifier.
+Courier ID from Rate-Calculator API.
+
+"courier_id": 1
+}
+
+Response:
+Field
+
+Type
+
+result
+
+Description
+
+string "1" for success, "0" for failure.
+
+message string Success or error message.
+data
+
+object Contains courier assignment details, including courier.
+
+Example:
+{
+"result": "1",
+"message": "Success",
+"data": {
+"order_id": "test123",
+"reference_id": "test123",
+"courier": "Delhivery"
+}
+}
+
+Schedule-Pickup API
+Method: POST
+This API is used to schedule courier pickups for orders that do not have automatic pickup scheduling
+(pickups_automatically_scheduled = NO, response from the rate-calculator API).
+Endpoint:
+https://shipping-api.com/app/api/v1/schedule-pickup
+
+Request Body:
+
+The request body must be in JSON format, and include the following parameters:
+Parameter Type
+
+Description
+
+order_id string Unique identifier of the order for which the pickup is to be scheduled.
+
+Example:
+{
+"order_id": "test123"
+}
+
+Response:
+
+The API returns a JSON object with the result of the pickup scheduling.
+Field
+
+Type
+
+Description
+
+result
+
+string Indicates the outcome of the request: "1" for success and "0" for failure.
+
+message
+
+string Provides additional information about the request outcome (e.g., "Success").
+
+Field
+
+Type
+
+Description
+
+data
+
+object Contains details of the scheduled pickup, including courier and tracking information.
+
+data.order_id
+
+string The order ID for which the pickup was scheduled.
+
+data.reference_id string Reference ID (usually matches the order ID).
+data.courier
+
+string Name of the assigned courier company.
+
+data.awb_number
+
+string The Airway Bill (AWB) number assigned by the courier for tracking.
+
+data.lr_number
+
+string LR (Lorry Receipt) number for the order.
+
+Example:
+{
+"result": "1",
+"message": "Success",
+"data": {
+"order_id": "test123",
+"reference_id": "test123",
+"courier": "Delhivery",
+"awb_number": "123123123",
+"lr_number": "58930303"
+}
+}
+
+Error Handling:
+
+
+
+Result Code: 0
+Message: An appropriate error message is returned in case of failure.
+
+Example:
+{
+"result": "0",
+"message": "Order not found"
+}
+
+Notes:
+
+
+
+Ensure that the order_id provided in the request is valid and that the order does not have automatic pickup
+scheduling enabled (pickups_automatically_scheduled = NO).
+This API is typically used in cases where manual scheduling of the courier pickup is required for certain orders.
+
+Cancel-Order API
+Method: POST
+This API is used to cancel an existing order. The order_id and awb_number are required to process the
+cancellation.
+Endpoint:
+https://shipping-api.com/app/api/v1/cancel-order
+
+Request Body:
+Parameter
+
+Type Required
+
+order_id
+
+string
+
+Yes
+
+Description
+Unique identifier for the order.
+
+awb_number number Yes
+
+The AWB number of the order shipment.
+
+Example:
+{
+"order_id": "test123",
+"awb_number": 38389839839839
+}
+
+Response:
+Field
+result
+
+Type
+
+Description
+
+string "1" for success, "0" for failure.
+
+message string Success or error message.
+data
+
+object Contains the cancellation details, including order_id and reference_id.
+
+Example:
+{
+"result": "1",
+"message": "Success",
+"data": {
+"order_id": "test123",
+"reference_id": "test123"
+}
+}
+
+Auto-Assign Order API
+Method: POST
+This API automatically assigns a courier to an order in the Shipmozo panel based on the provided order ID. But
+user should have setup its auto assign courier inside Setting > Auto assign in the panel.
+Endpoint:
+https://shipping-api.com/app/api/v1/auto-assign-order
+
+Request Body:
+Parameter Type Required
+order_id string Yes
+
+Description
+The unique identifier for the order to be auto-assigned.
+
+Request Body Example:
+{
+"order_id": "12634WP61391513073"
+}
+
+Success Response:
+Field
+
+Type
+
+result
+
+Description
+
+string "1" for success.
+
+message string Success message.
+data
+
+object Contains details of the assigned order.
+
+Success Response Example:
+{
+"result": "1",
+"message": "Success",
+"data": {
+"order_id": "test123",
+"reference_id": "test123",
+"awb_number": "123123123",
+"courier_company": "Delhivery",
+"courier_company_service": "Delhivery"
+}
+}
+
+Error Response:
+Field
+
+Type
+
+result
+
+Description
+
+string "0" for error.
+
+message string Error message.
+data
+
+object Contains error details.
+
+Error Response Example:
+{
+"result": "0",
+"message": "Error",
+"data": {
+"error": "please setup auto assign"
+}
+}
+
+Response Fields:
+
+For Success:
+
+
+
+
+
+
+order_id: The unique identifier for the order that was auto-assigned.
+reference_id: The reference ID for the order (same as order_id).
+awb_number: The Air Waybill number assigned to the order.
+courier_company: The name of the courier company that has been assigned.
+courier_company_service: The specific service of the courier company.
+
+For Error:
+
+
+error: A message indicating the reason for the failure.
+
+Get-Order-Detail API
+
+Method: GET
+This API retrieves the details of a specific order using the order_id.
+Endpoint:
+https://shipping-api.com/app/api/v1/get-order-detail/{order_id}
+
+Path Parameter:
+Parameter Type Required
+order_id string Yes
+
+Description
+Unique identifier for the order.
+
+Utility:
+
+Login API
+Method: POST
+This API is used to authenticate a user with the Shipmozo panel. The username and password must be valid
+credentials.
+Endpoint:
+https://shipping-api.com/app/api/v1/login
+
+Request Body:
+Parameter Type Required
+
+Description
+
+username string Yes
+
+The username of the user (Shipmozo panel).
+
+password string Yes
+
+The password of the user (Shipmozo panel).
+
+Example:
+{
+"username": "testuser",
+"password": "your_password"
+}
+
+Response:
+Field
+result
+
+Type
+
+Description
+
+string "1" for success, "0" for failure.
+
+message string Success or error message.
+data
+
+array Contains user details, including the name, public_key, and private_key.
+
+Example:
+{
+"result": "1",
+"message": "Success",
+"data": [
+
+{
+"name": "Vikas Sahu",
+"public_key": "2kIWvh6ZS3Gms1l9Yp4u",
+"private_key": "JY5LAThBCySsVWHZM9oK"
+}
+]
+}
+
+Rate-Calculator API
+Method: POST
+This API calculates courier rates for a shipment. It can either calculate rates for an existing order by providing
+the order_id and pickup_pincode, or for a new shipment by providing other details.
+Endpoint:
+https://shipping-api.com/app/api/v1/rate-calculator
+
+Request Body:
+Parameter
+
+Type Required
+
+Description
+
+order_id
+
+string
+
+pickup_pincode
+
+number Yes
+
+Pincode of the pickup location.
+
+delivery_pincode number Yes
+
+Pincode of the delivery location.
+
+payment_type
+
+string
+
+Yes
+
+Type of payment (PREPAID or COD).
+
+shipment_type
+
+string
+
+Yes
+
+Type of shipment (FORWARD, RETURN, etc.).
+
+order_amount
+
+number Yes
+
+Value of the order.
+
+type_of_package
+
+string
+
+Yes
+
+Type of package (e.g., SPS).
+
+rov_type
+
+string
+
+Yes
+
+Responsibility of value (e.g., ROV_OWNER).
+
+cod_amount
+
+string
+
+No
+
+COD amount (if applicable).
+
+weight
+
+number Yes
+
+Weight of the shipment in grams.
+
+dimensions
+
+array
+
+Dimensions of the package (length, width, height).
+
+No
+
+Yes
+
+Example:
+{
+"order_id": "",
+"pickup_pincode": 122001,
+"delivery_pincode": 110001,
+"payment_type": "PREPAID",
+"shipment_type": "FORWARD",
+"order_amount": 1000,
+"type_of_package": "SPS",
+"rov_type": "ROV_OWNER",
+"cod_amount": "",
+"weight": 500,
+"dimensions": [
+{
+"no_of_box": "1",
+"length": "22",
+"width": "10",
+
+Order ID (if calculating rates for an existing order).
+
+"height": "10"
+}
+]
+}
+
+Pincode-Serviceability API
+Method: POST
+This API checks if a delivery is serviceable between the provided pickup_pincode and delivery_pincode.
+Endpoint:
+https://shipping-api.com/app/api/v1/pincode-serviceability
+
+Request Body:
+Parameter
+pickup_pincode
+
+Type Required
+
+Description
+
+number Yes
+
+Pincode of the pickup location.
+
+delivery_pincode number Yes
+
+Pincode of the delivery location.
+
+Example:
+{
+"pickup_pincode": 122001,
+"delivery_pincode": 110001
+}
+
+Response:
+Field
+result
+
+Type
+
+Description
+
+string "1" for success, "0" for failure.
+
+message string Success or error message.
+data
+
+object Contains the serviceability status (serviceable).
+
+Example:
+{
+"result": "1",
+"message": "Success",
+"data": {
+"serviceable": true
+}
+}
+
+Get-Return-Reason API
+Method: GET
+This API returns a list of reasons for returning an order, each with an associated id and title.
+
+Endpoint:
+https://shipping-api.com/app/api/v1/get-return-reason
+
+Response:
+Field
+
+Type
+
+result
+
+Description
+
+string "1" for success, "0" for failure.
+
+message string Success or error message.
+data
+
+array A list of return reasons, each with an id and title.
+
+Example:
+{
+"result": "1",
+"message": "Success",
+"data": [
+{
+"id": 1,
+"title": "Delivery Date has changed"
+},
+{
+"id": 8,
+"title": "No longer Needed"
+},
+{
+"id": 9,
+"title": "Item is damaged"
+},
+{
+"id": 10,
+"title": "Received wrong item"
+},
+{
+"id": 11,
+"title": "Parcel damaged on arrival"
+},
+{
+"id": 12,
+"title": "Size not as expected"
+},
+{
+"id": 13,
+"title": "Changed my mind"
+},
+{
+"id": 14,
+"title": "Other"
+}
+]
+}
+
+Response Fields:
+Field
+
+Type
+
+id
+
+number The unique identifier for the return reason. It will be required in push-return-order API.
+
+title string
+
+Description
+The title or description of the return reason.
+
+LABELS
+
+Get-Order-Label API
+Method: GET
+This API is used to retrieve the shipping label for an order by providing the AWB (Air Waybill) number in the
+URL. The label is returned as a base64-encoded PNG image.
+Endpoint:
+https://shipping-api.com/app/api/v1/get-order-label/{awb_number}
+
+
+Replace {awb_number} with the actual AWB number.
+
+Request Parameters:
+Parameter
+
+Type Required
+
+awb_number string Yes
+
+Description
+The AWB number of the order.
+
+Response:
+Field
+result
+
+Type
+
+Description
+
+string "1" for success, "0" for failure.
+
+message string Success or error message.
+data
+
+array Contains the label (base64-encoded image) and created_at.
+
+Example:
+{
+"result": "1",
+"message": "Success",
+"data": [
+{
+"label": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...",
+"created_at": "2024-09-27 12:59:56"
+}
+]
+}
+
+Response Fields:
+Field
+label
+
+Type
+
+Description
+
+string The shipping label in base64-encoded PNG format.
+
+created_at string The timestamp of when the label was generated (format: YYYY-MM-DD HH:MM).
+
+Track-Order API
+Method: GET
+This API is used to track the status of an order using the provided AWB (Air Waybill) number.
+
+Endpoint:
+https://shipping-api.com/app/api/v1/track-order
+
+Request Parameters:
+Parameter
+
+Type Required
+
+awb_number string Yes
+
+Description
+The AWB number of the order being tracked.
+
+Example URL:
+https://shipping-api.com/app/api/v1/track-order?awb_number=GGN9000181640
+
+Response:
+Field
+
+Type
+
+result
+
+Description
+
+string "1" for success, "0" for failure.
+
+message string Success or error message.
+data
+
+object Contains tracking details for the order.
+
+Example:
+{
+"result": "1",
+"message": "Success",
+"data": {
+"order_id": "12634WP61391513073",
+"reference_id": "12634WP61391513073",
+"awb_number": "GGN9000181640",
+"courier": "Professional 0.5KG",
+"expected_delivery_date": null,
+"current_status": "Pickup Pending",
+"status_time": null,
+"scan_detail": []
+}
+}
+
+Create-Warehouse API
+Method: POST
+This API is used to create a new warehouse, generating a warehouse_id required for pushing orders.
+Important Notes:
+
+
+
+
+
+The address_title must be unique for each request. If it's not unique, the API will return the existing
+warehouse_id associated with that title.
+Fields like name, phone, alternate_phone, and address_line_two are optional.
+Fields like address_line_one and pincode are required.
+If the warehouse already exists, use the Get-Warehouses API to retrieve the warehouse_id.
+
+Endpoint:
+https://shipping-api.com/app/api/v1/create-warehouse
+
+Request Body:
+Parameter
+
+Type Required
+
+Description
+
+address_title
+
+string
+
+Yes
+
+Title of the address (must be unique).
+
+name
+
+string
+
+No
+
+Name of the warehouse manager or owner.
+
+phone
+
+number No
+
+Phone number of the warehouse manager.
+
+alternate_phone
+
+number No
+
+Alternate phone number.
+
+email
+
+string
+
+No
+
+Email address of the warehouse.
+
+address_line_one string
+
+Yes
+
+First line of the warehouse address.
+
+address_line_two string
+
+No
+
+Second line of the warehouse address (optional).
+
+pin_code
+
+number Yes
+
+Pincode of the warehouse location.
+
+Example:
+{
+"address_title": "test123",
+"name": "Rahul",
+"phone": 9876543210,
+"alternate_phone": 9876543210,
+"email": "test@gmail.com",
+"address_line_one": "Delhi Railway Station",
+"address_line_two": "New Delhi",
+"pin_code": 141211
+}
+
+Response:
+Field
+result
+
+Type
+
+Description
+
+string "1" for success, "0" for failure.
+
+message string Success or error message.
+data
+
+object Contains response information, including the warehouse_id.
+
+Example:
+{
+"result": "1",
+"message": "Success",
+"data": {
+"warehouse_id": "warehouse123"
+}
+}
+
+Update-Warehouse API
+Method: POST
+
+This API is used to update the warehouse information associated with a specific order. It requires the order ID
+and the new warehouse ID.
+Endpoint:
+https://shipping-api.com/app/api/v1/order/update-warehouse
+
+Request Body:
+Parameter
+order_id
+
+Type Required
+string Yes
+
+warehouse_id int
+
+Yes
+
+Description
+The unique identifier for the order.
+The ID of the warehouse to be updated.
+
+Request Body Example:
+{
+"order_id": "test123",
+"warehouse_id": 1
+}
+
+Response:
+Field
+
+Type
+
+result
+
+Description
+
+string "1" for success, "0" for failure.
+
+message string Success or error message.
+data
+
+object Contains the updated order and reference information.
+
+Response Example:
+{
+"result": "1",
+"message": "Success",
+"data": {
+"order_id": "test123",
+"reference_id": "test123"
+}
+}
+
+Response Fields:
+Field
+order_id
+
+Type
+
+Description
+
+string The unique identifier for the order being updated.
+
+reference_id string The reference ID for the order (order_id of user’s website).
+
+Important Notes:
+
+
+
+The fields required for updating the warehouse information are similar to those in the Create-Warehouse API,
+but only the order_id and warehouse_id are mandatory for this request.
+Ensure that the warehouse_id is valid and corresponds to an existing warehouse.
+
+Get-Warehouses API
+Method: GET
+
+This API retrieves all the warehouses created in the Shipmozo panel.
+Endpoint:
+https://shipping-api.com/app/api/v1/get-warehouses
+
+Response:
+Field
+result
+
+Type
+
+Description
+
+string "1" for success, "0" for failure.
+
+message string Success or error message.
+data
+
+array An array of warehouse objects containing their details.
+
+Response Example:
+{
+"result": "1",
+"message": "Success",
+"data": [
+{
+"id": 23481,
+"default": "YES",
+"address_title": "Sunshine Warehouse",
+"name": "Rahul Sharma",
+"email": "rahul.sharma@example.com",
+"phone": "9001234567",
+"alt_phone": "9007654321",
+"address_line_one": "Sunshine Plaza, Sector 12",
+"address_line_two": "Near Main Road",
+"pincode": "122018",
+"city": "Gurgaon",
+"state": "Haryana",
+"country": "India",
+"status": "ACTIVE"
+},
+{
+"id": 23482,
+"default": "NO",
+"address_title": "Green Valley",
+"name": "Aditi Mehta",
+"email": "aditi.mehta@example.com",
+"phone": "9876543210",
+"alt_phone": "",
+"address_line_one": "Green Valley Road, Sector 45",
+"address_line_two": "Opposite Park",
+"pincode": "122003",
+"city": "Noida",
+"state": "Uttar Pradesh",
+"country": "India",
+"status": "INACTIVE"
+}
+]
+}
+
+Response Fields:
+Field
+id
+
+Type
+int
+
+Description
+Unique identifier for the warehouse.
+
+Field
+
+Type
+
+Description
+
+default
+
+string Indicates if this is the default warehouse ("YES" or "NO").
+
+address_title
+
+string Title or name for the warehouse address.
+
+name
+
+string Name of the contact person for the warehouse.
+
+email
+
+string Email address for communication regarding the warehouse.
+
+phone
+
+string Primary contact number for the warehouse.
+
+alt_phone
+
+string Alternate contact number for the warehouse (optional).
+
+address_line_one string Primary address line for the warehouse.
+address_line_two string Secondary address line for the warehouse (optional).
+pincode
+
+string Postal code for the warehouse location.
+
+city
+
+string City where the warehouse is located.
+
+state
+
+string State where the warehouse is located.
+
+country
+
+string Country where the warehouse is located.
+
+status
+
+string Current status of the warehouse (e.g., "ACTIVE", "INACTIVE").
+
+

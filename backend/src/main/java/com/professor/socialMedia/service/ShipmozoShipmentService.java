@@ -68,14 +68,27 @@ public class ShipmozoShipmentService {
                 String city = address != null && address.getCity() != null ? address.getCity() : "New Delhi";
                 String pin = address != null && address.getZip() != null ? address.getZip() : "110002";
                 String state = address != null && address.getState() != null ? address.getState() : "Delhi";
-                // Shipmozo default payload fields based on phase 3 instructions:
-                body.put("customer_name", custName);
-                body.put("phone", phone);
-                body.put("address", addrStr);
-                body.put("city", city);
-                body.put("state", state);
-                body.put("pincode", pin);
-                body.put("amount", order.getTotalAmount());
+                // Shipmozo default payload fields based on the official PDF:
+                body.put("order_date", java.time.LocalDate.now().toString());
+                body.put("order_type", "ESSENTIALS");
+                body.put("consignee_name", custName);
+                body.put("consignee_phone", phone);
+                body.put("consignee_alternate_phone", "");
+                body.put("consignee_email",
+                                user != null && user.getEmail() != null ? user.getEmail() : "noemail@example.com");
+                body.put("consignee_address_line_one", addrStr);
+                body.put("consignee_address_line_two", "");
+                body.put("consignee_pin_code", pin);
+                body.put("consignee_city", city);
+                body.put("consignee_state", state);
+
+                body.put("payment_type", "PREPAID");
+                body.put("weight", 500); // Dummy weight in grams
+                body.put("length", 10);
+                body.put("width", 10);
+                body.put("height", 10);
+                body.put("warehouse_id", "1"); // Optional or dummy if Get-Warehouses isn't called
+                body.put("cod_amount", "");
 
                 List<Map<String, Object>> itemsList = new ArrayList<>();
                 for (var i : order.getItems()) {
@@ -85,11 +98,15 @@ public class ShipmozoShipmentService {
 
                         Map<String, Object> m = new HashMap<>();
                         m.put("name", name);
-                        m.put("qty", i.getQuantity());
-                        m.put("price", i.getPriceSnapshot());
+                        m.put("sku_number", i.getProductId().toHexString());
+                        m.put("quantity", i.getQuantity());
+                        m.put("discount", "");
+                        m.put("hsn", "");
+                        m.put("unit_price", i.getPriceSnapshot());
+                        m.put("product_category", "Other");
                         itemsList.add(m);
                 }
-                body.put("items", itemsList);
+                body.put("product_detail", itemsList);
 
                 HttpEntity<Map<String, Object>> req = new HttpEntity<>(body, headers);
 
