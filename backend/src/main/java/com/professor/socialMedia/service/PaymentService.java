@@ -47,6 +47,14 @@ public class PaymentService {
         if (order.getStatus() != OrderStatus.PENDING && order.getStatus() != OrderStatus.CREATED) {
             throw new IllegalStateException("Order id not payable.");
         }
+        Optional<Payment> existingPayment = paymentRepository.findByOrderIdAndStatus(orderId, PaymentStatus.CREATED);
+        if (existingPayment.isPresent()) {
+            Payment p = existingPayment.get();
+            p.setProvider(provider);
+            p.setAmount(order.getTotalAmount());
+            return paymentRepository.save(p);
+        }
+
         Payment payment = new Payment();
         payment.setOrderId(orderId);
         payment.setProvider(provider);
@@ -79,7 +87,12 @@ public class PaymentService {
             String providerPaymentId = data.path("payment").path("cf_payment_id").asText();
             String reqStatus = data.path("payment").path("payment_status").asText();
 
-            ObjectId orderId = new ObjectId(reqOrderId);
+            String originalOrderId = reqOrderId;
+            if (reqOrderId != null && reqOrderId.contains("_")) {
+                originalOrderId = reqOrderId.split("_")[0];
+            }
+
+            ObjectId orderId = new ObjectId(originalOrderId);
             boolean success = "SUCCESS".equalsIgnoreCase(reqStatus);
 
             // 2. Idempotency check

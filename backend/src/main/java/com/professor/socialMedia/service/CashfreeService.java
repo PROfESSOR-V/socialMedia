@@ -36,7 +36,8 @@ public class CashfreeService {
                 headers.set("x-api-version", "2023-08-01");
 
                 Map<String, Object> body = new HashMap<>();
-                body.put("order_id", order.getId().toString());
+                String cashfreeOrderId = order.getId().toString() + "_" + System.currentTimeMillis();
+                body.put("order_id", cashfreeOrderId);
                 body.put("order_amount", order.getTotalAmount());
                 body.put("order_currency", "INR");
                 body.put("customer_details", Map.of(
@@ -48,7 +49,7 @@ public class CashfreeService {
                 Map<String, Object> orderMeta = new HashMap<>();
                 orderMeta.put("notify_url", "https://socialmedia-0qzd.onrender.com/api/payments/webhook");
                 if (returnUrl != null && !returnUrl.isEmpty()) {
-                        orderMeta.put("return_url", returnUrl + "?order_id={order_id}");
+                        orderMeta.put("return_url", returnUrl + "?order_id=" + order.getId().toString());
                 }
                 body.put("order_meta", orderMeta);
 

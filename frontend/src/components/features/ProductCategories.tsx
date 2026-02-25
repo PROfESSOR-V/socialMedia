@@ -10,12 +10,21 @@ import apiClient from "@/lib/apiClient";
 import { Loader2 } from "lucide-react";
 
 export default function ProductCategories() {
+  const { cachedProducts, cachedCategories, setCachedProducts, setCachedCategories } = useStore();
   const [activeCategory, setActiveCategory] = useState("All");
-  const [products, setProducts] = useState<any[]>([]);
-  const [categories, setCategories] = useState<string[]>(["All"]);
-  const [loading, setLoading] = useState(true);
+  const [products, setProducts] = useState<any[]>(cachedProducts || []);
+  const [categories, setCategories] = useState<string[]>(cachedCategories || ["All"]);
+  const [loading, setLoading] = useState(!cachedProducts || !cachedCategories);
 
   useEffect(() => {
+    // If we already have cached data, don't fetch again
+    if (cachedProducts && cachedCategories) {
+      setProducts(cachedProducts);
+      setCategories(cachedCategories);
+      setLoading(false);
+      return;
+    }
+
     const fetchData = async () => {
       try {
         const [productsRes, categoriesRes] = await Promise.all([
@@ -25,12 +34,14 @@ export default function ProductCategories() {
         
         const productsList = Array.isArray(productsRes.data) ? productsRes.data : productsRes.data?.data || [];
         setProducts(productsList);
+        setCachedProducts(productsList);
 
         const categoriesList = Array.isArray(categoriesRes.data) ? categoriesRes.data : categoriesRes.data?.data || [];
         const catNames = categoriesList.map((c: any) => c.name);
         // Ensure "All" is only present once and at the beginning
-        const uniqueCatNames = Array.from(new Set<string>(catNames)).filter(name => name !== "All");
-        setCategories(["All", ...uniqueCatNames]);
+        const uniqueCatNames = ["All", ...Array.from(new Set<string>(catNames)).filter(name => name !== "All")];
+        setCategories(uniqueCatNames);
+        setCachedCategories(uniqueCatNames);
       } catch (err) {
         console.error("Failed to load products/categories", err);
       } finally {
@@ -38,7 +49,7 @@ export default function ProductCategories() {
       }
     };
     fetchData();
-  }, []);
+  }, [cachedProducts, cachedCategories, setCachedProducts, setCachedCategories]);
 
   const filteredProducts =
     activeCategory === "All"

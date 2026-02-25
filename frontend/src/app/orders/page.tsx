@@ -5,8 +5,9 @@ import { api } from "@/lib/api";
 import { formatPrice } from "@/lib/utils";
 import { useStore } from "@/store/useStore";
 import Link from "next/link";
+import Script from "next/script";
 import { Button } from "@/components/ui/button";
-import { Package, ChevronLeft, XCircle } from "lucide-react";
+import { Package, ChevronLeft, XCircle, CreditCard } from "lucide-react";
 
 interface OrderItem {
   productId: string;
@@ -28,6 +29,7 @@ export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [canceling, setCanceling] = useState<string | null>(null);
+  const [paying, setPaying] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -70,6 +72,38 @@ export default function OrdersPage() {
     }
   };
 
+  const handlePayNow = async (orderId: string) => {
+    try {
+      setPaying(orderId);
+      const returnUrl = window.location.origin + "/orders/success";
+      const paymentRes = await api.payments.createIntent(orderId, "CASHFREE", returnUrl);
+      
+      const paymentSessionId = paymentRes?.payment_session_id || paymentRes?.data?.payment_session_id;
+
+      if (paymentSessionId) {
+           // @ts-ignore
+           const cashfree = Cashfree({
+               mode: "production" 
+           });
+           
+           cashfree.checkout({
+               paymentSessionId: paymentSessionId
+           });
+      } else {
+          throw new Error("Could not retrieve payment session ID.");
+      }
+    } catch (error: any) {
+      console.error("Failed to initiate payment:", error);
+      showMessageModal(
+        "Payment Initialization Failed", 
+        error?.response?.data?.message || error.message || "Failed to start payment. Please try again.", 
+        true
+      );
+    } finally {
+      setPaying(null);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
@@ -95,6 +129,7 @@ export default function OrdersPage() {
 
   return (
     <div className="container mx-auto max-w-5xl px-4 py-12">
+      <Script src="https://sdk.cashfree.com/js/v3/cashfree.js" strategy="lazyOnload" />
       <div className="mb-8">
         <Link
           href="/products"
@@ -110,31 +145,33 @@ export default function OrdersPage() {
       <div className="space-y-6">
         {orders.map((order) => (
           <div key={order.id} className="rounded-lg border bg-card p-6 shadow-sm overflow-hidden">
-            <div className="mb-4 flex flex-col justify-between border-b pb-4 sm:flex-row sm:items-center">
-              <div>
-                <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">Order #{order.id}</p>
-                <p className="text-sm">
-                  Placed on <span className="font-medium">{new Date(order.createdAt).toLocaleDateString(undefined, {
-                    year: 'numeric', month: 'long', day: 'numeric',
-                    hour: '2-digit', minute: '2-digit'
-                  })}</span>
-                </p>
-              </div>
-              <div className="mt-4 flex items-center justify-between sm:mt-0 sm:justify-end gap-6">
-                <div className="text-right">
-                  <p className="text-xs text-muted-foreground mb-1">Total Amount</p>
-                  <p className="font-medium">{formatPrice(order.totalAmount)}</p>
+            <Link href={`/orders/${order.id}`} className="block hover:bg-secondary/10 transition-colors -m-6 p-6 mb-4 border-b">
+              <div className="flex flex-col justify-between sm:flex-row sm:items-center">
+                <div>
+                  <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">Order #{order.id}</p>
+                  <p className="text-sm">
+                    Placed on <span className="font-medium">{new Date(order.createdAt).toLocaleDateString(undefined, {
+                      year: 'numeric', month: 'long', day: 'numeric',
+                      hour: '2-digit', minute: '2-digit'
+                    })}</span>
+                  </p>
                 </div>
-                <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${
-                  order.status === 'PAID' ? 'bg-green-100 text-green-800' : 
-                  order.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' : 
-                  order.status === 'FAILED' ? 'bg-red-100 text-red-800' : 
-                  'bg-gray-100 text-gray-800'
-                }`}>
-                  {order.status}
-                </span>
+                <div className="mt-4 flex items-center justify-between sm:mt-0 sm:justify-end gap-6">
+                  <div className="text-right">
+                    <p className="text-xs text-muted-foreground mb-1">Total Amount</p>
+                    <p className="font-medium">{formatPrice(order.totalAmount)}</p>
+                  </div>
+                  <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${
+                    order.status === 'PAID' ? 'bg-green-100 text-green-800' : 
+                    order.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' : 
+                    order.status === 'FAILED' ? 'bg-red-100 text-red-800' : 
+                    'bg-gray-100 text-gray-800'
+                  }`}>
+                    {order.status}
+                  </span>
+                </div>
               </div>
-            </div>
+            </Link>
             
             <div className="space-y-3 pt-2">
               <h3 className="text-sm font-medium mb-3">Items</h3>
@@ -156,15 +193,15 @@ export default function OrdersPage() {
               ))}
             </div>
 
-            {/* Cancel Order Section */}
+            {/* Action Buttons Section */}
             {(order.status === 'PENDING' || order.status === 'PAID') && (
-              <div className="mt-6 pt-4 border-t flex justify-end">
+              <div className="mt-6 pt-4 border-t flex justify-end gap-4">
                 <Button 
-                  variant="destructive" 
+                  variant="outline" 
                   size="sm" 
                   onClick={() => handleCancelOrder(order.id)}
-                  disabled={canceling === order.id}
-                  className="flex items-center gap-2"
+                  disabled={canceling === order.id || paying === order.id}
+                  className="flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
                 >
                   {canceling === order.id ? (
                     <span className="animate-pulse">Cancelling...</span>
@@ -174,6 +211,24 @@ export default function OrdersPage() {
                     </>
                   )}
                 </Button>
+                
+                {order.status === 'PENDING' && (
+                  <Button 
+                    variant="default"
+                    size="sm"
+                    onClick={() => handlePayNow(order.id)}
+                    disabled={paying === order.id || canceling === order.id}
+                    className="flex items-center gap-2"
+                  >
+                    {paying === order.id ? (
+                      <span className="animate-pulse">Loading...</span>
+                    ) : (
+                      <>
+                        <CreditCard className="h-4 w-4" /> Pay Now
+                      </>
+                    )}
+                  </Button>
+                )}
               </div>
             )}
           </div>

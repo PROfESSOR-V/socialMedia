@@ -11,22 +11,28 @@ import Image from "next/image";
 import apiClient from "@/lib/apiClient";
 
 export default function ProductGrid() {
-  const { addToCart, token, setAuthModalOpen } = useStore();
-  const [products, setProducts] = useState<any[]>([]);
+  const { addToCart, token, setAuthModalOpen, cachedProducts, setCachedProducts } = useStore();
+  const [products, setProducts] = useState<any[]>((cachedProducts || []).slice(0, 8));
   const router = useRouter();
 
   useEffect(() => {
+    if (cachedProducts && cachedProducts.length > 0) {
+      setProducts(cachedProducts.slice(0, 8));
+      return;
+    }
+
     const fetchProducts = async () => {
       try {
         const { data } = await apiClient.get("/api/products");
         const productList = Array.isArray(data) ? data : data?.data || data?.products || [];
         setProducts(productList.slice(0, 8)); // Show first 8 products
+        setCachedProducts(productList);
       } catch (err) {
         console.error("Failed to fetch products", err);
       }
     };
     fetchProducts();
-  }, []);
+  }, [cachedProducts, setCachedProducts]);
 
   return (
     <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">

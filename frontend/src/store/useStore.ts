@@ -44,6 +44,12 @@ interface StoreState {
   updateQuantity: (id: string, quantity: number) => Promise<void>;
   toggleCart: () => void;
   clearCart: () => Promise<void>;
+
+  // Product Cache
+  cachedProducts: any[] | null;
+  cachedCategories: string[] | null;
+  setCachedProducts: (products: any[]) => void;
+  setCachedCategories: (categories: string[]) => void;
 }
 
 export const useStore = create<StoreState>()(
@@ -136,6 +142,12 @@ export const useStore = create<StoreState>()(
           console.error("Failed to sync cart clear", error);
         }
       },
+
+      // Product Cache
+      cachedProducts: null,
+      cachedCategories: null,
+      setCachedProducts: (products) => set({ cachedProducts: products }),
+      setCachedCategories: (categories) => set({ cachedCategories: categories }),
     }),
     {
       name: 'auth-storage', // unique name
