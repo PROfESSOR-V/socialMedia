@@ -9,75 +9,95 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import com.professor.socialMedia.entity.Address;
+import com.professor.socialMedia.entity.User;
+import com.professor.socialMedia.repository.ProductRepository;
+import com.professor.socialMedia.repository.UserRepository;
+
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Service
 public class ShipmozoShipmentService {
 
-    @Value("${shipmozo.public-key}")
-    private String publicKey;
+        @Value("${shipmozo.public-key}")
+        private String publicKey;
 
-    @Value("${shipmozo.private-key}")
-    private String privateKey;
+        @Value("${shipmozo.private-key}")
+        private String privateKey;
 
-    @Value("${shipmozo.base-url}")
-    private String baseUrl;
+        @Value("${shipmozo.base-url}")
+        private String baseUrl;
 
-    public Map<String, Object> createShipment(Order order) {
+        @org.springframework.beans.factory.annotation.Autowired
+        private UserRepository userRepository;
 
-        RestTemplate rest = new RestTemplate();
+        @org.springframework.beans.factory.annotation.Autowired
+        private ProductRepository productRepository;
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("X-PUBLIC-KEY", publicKey);
-        headers.set("X-PRIVATE-KEY", privateKey);
+        public Map<String, Object> createShipment(Order order) {
 
-        Map<String, Object> body = new HashMap<>();
-        body.put("order_id", order.getId().toHexString());
-        body.put("customer_name",
-                order.getShippingAddress() != null && order.getShippingAddress().getName() != null
-                        ? order.getShippingAddress().getName()
-                        : "Customer");
-        body.put("phone",
-                order.getShippingAddress() != null && order.getShippingAddress().getPhoneNumber() != null
-                        ? order.getShippingAddress().getPhoneNumber()
-                        : "9999999999");
-        body.put("address",
-                order.getShippingAddress() != null && order.getShippingAddress().getStreet() != null
-                        ? order.getShippingAddress().getStreet()
-                        : "Address");
-        body.put("city",
-                order.getShippingAddress() != null && order.getShippingAddress().getCity() != null
-                        ? order.getShippingAddress().getCity()
-                        : "City");
-        body.put("state",
-                order.getShippingAddress() != null && order.getShippingAddress().getState() != null
-                        ? order.getShippingAddress().getState()
-                        : "State");
-        body.put("pincode",
-                order.getShippingAddress() != null && order.getShippingAddress().getZip() != null
-                        ? order.getShippingAddress().getZip()
-                        : "000000");
-        body.put("amount", order.getTotalAmount());
+                RestTemplate rest = new RestTemplate();
 
-        body.put("items", order.getItems().stream().map(i -> {
-            Map<String, Object> m = new HashMap<>();
-            // Since product name isn't stored in OrderItem by default, we just pass ID or
-            // logic
-            m.put("name", "Product " + i.getProductId().toHexString());
-            m.put("qty", i.getQuantity());
-            m.put("price", i.getPriceSnapshot());
-            return m;
-        }).toList());
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.APPLICATION_JSON);
+                headers.set("X-PUBLIC-KEY", publicKey);
+                headers.set("X-PRIVATE-KEY", privateKey);
 
-        HttpEntity<Map<String, Object>> req = new HttpEntity<>(body, headers);
+                Map<String, Object> body = new HashMap<>();
+                body.put("order_id", order.getId().toHexString());
 
-        ResponseEntity<Map> res = rest.postForEntity(
-                baseUrl + "/push-order",
-                req,
-                Map.class);
+                User user = userRepository.findById(order.getUserId()).orElse(null);
+                Address address = order.getShippingAddress();
+                if (address == null && user != null && user.getAddresses() != null && !user.getAddresses().isEmpty()) {
+                        address = user.getAddresses().get(0);
+                }
 
-        return res.getBody();
-    }
+                String custName = user != null && user.getName() != null ? user.getName() : "Customer";
+                if (custName.trim().isEmpty())
+                        custName = "Customer";
+
+                String phone = user != null && user.getMobileNumber() != null ? user.getMobileNumber() : "9999999999";
+                if (phone.trim().isEmpty())
+                        phone = "9999999999";
+
+                String addrStr = address != null && address.getStreet() != null ? address.getStreet()
+                                : "No Address Provided";
+                String city = address != null && address.getCity() != null ? address.getCity() : "New Delhi";
+                String pin = address != null && address.getZip() != null ? address.getZip() : "110002";
+                String state = address != null && address.getState() != null ? address.getState() : "Delhi";
+                // Shipmozo default payload fields based on phase 3 instructions:
+                body.put("customer_name", custName);
+                body.put("phone", phone);
+                body.put("address", addrStr);
+                body.put("city", city);
+                body.put("state", state);
+                body.put("pincode", pin);
+                body.put("amount", order.getTotalAmount());
+
+                List<Map<String, Object>> itemsList = new ArrayList<>();
+                for (var i : order.getItems()) {
+                        String name = productRepository.findById(i.getProductId())
+                                        .map(com.professor.socialMedia.entity.Product::getName)
+                                        .orElse("Product " + i.getProductId().toHexString());
+
+                        Map<String, Object> m = new HashMap<>();
+                        m.put("name", name);
+                        m.put("qty", i.getQuantity());
+                        m.put("price", i.getPriceSnapshot());
+                        itemsList.add(m);
+                }
+                body.put("items", itemsList);
+
+                HttpEntity<Map<String, Object>> req = new HttpEntity<>(body, headers);
+
+                ResponseEntity<Map> res = rest.postForEntity(
+                                baseUrl + "/push-order",
+                                req,
+                                Map.class);
+
+                return res.getBody();
+        }
 }
