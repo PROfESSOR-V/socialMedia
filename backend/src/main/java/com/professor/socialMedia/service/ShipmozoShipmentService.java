@@ -72,22 +72,33 @@ public class ShipmozoShipmentService {
                 body.put("order_date", java.time.LocalDate.now().toString());
                 body.put("order_type", "ESSENTIALS");
                 body.put("consignee_name", custName);
-                body.put("consignee_phone", phone);
-                body.put("consignee_alternate_phone", "");
+
+                try {
+                        body.put("consignee_phone", Long.parseLong(phone));
+                } catch (NumberFormatException e) {
+                        body.put("consignee_phone", 9999999999L);
+                }
+
                 body.put("consignee_email",
                                 user != null && user.getEmail() != null ? user.getEmail() : "noemail@example.com");
                 body.put("consignee_address_line_one", addrStr);
                 body.put("consignee_address_line_two", "");
-                body.put("consignee_pin_code", pin);
+
+                try {
+                        body.put("consignee_pin_code", Integer.parseInt(pin));
+                } catch (NumberFormatException e) {
+                        body.put("consignee_pin_code", 110002);
+                }
+
                 body.put("consignee_city", city);
                 body.put("consignee_state", state);
 
                 body.put("payment_type", "PREPAID");
-                body.put("weight", 500); // Dummy weight in grams
-                body.put("length", 10);
+                body.put("weight", 500); // weight in grams
+                body.put("length", 10); // in cm
                 body.put("width", 10);
                 body.put("height", 10);
-                body.put("warehouse_id", "1"); // Optional or dummy if Get-Warehouses isn't called
+                body.put("warehouse_id", ""); // Needs to be explicitly empty if using default
                 body.put("cod_amount", "");
 
                 List<Map<String, Object>> itemsList = new ArrayList<>();

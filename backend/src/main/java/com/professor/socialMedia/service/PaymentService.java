@@ -148,6 +148,8 @@ public class PaymentService {
                         order.setCourier("Shipmozo");
                         order.setTrackingStatus("Shipment Created");
                     }
+                } catch (org.springframework.web.client.HttpStatusCodeException e) {
+                    System.err.println("Shipmozo HTTP Error " + e.getStatusCode() + ": " + e.getResponseBodyAsString());
                 } catch (Exception e) {
                     System.err.println("Non-blocking issue: Failed to transmit to Shipmozo: " + e.getMessage());
                 }
