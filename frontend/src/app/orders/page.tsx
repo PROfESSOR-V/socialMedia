@@ -11,7 +11,7 @@ import { Package, ChevronLeft, XCircle, CreditCard } from "lucide-react";
 
 interface OrderItem {
   productId: string;
-  name: string;
+  productName: string;
   price: number;
   quantity: number;
 }
@@ -182,7 +182,7 @@ export default function OrdersPage() {
                       {item.quantity}
                     </span> 
                     <Link href={`/products/${item.productId}`} className="font-medium hover:underline hover:text-primary transition-colors">
-                      {item.name}
+                      {item.productName || "Unknown Product"}
                     </Link>
                   </span>
                   <div className="text-right">

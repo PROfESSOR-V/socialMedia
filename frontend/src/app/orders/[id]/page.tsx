@@ -11,7 +11,7 @@ import Image from "next/image";
 
 interface OrderItem {
   productId: string;
-  name: string;
+  productName: string;
   price: number;
   quantity: number;
 }
@@ -207,7 +207,7 @@ export default function OrderDetailsPage() {
                     </span>
                     <div>
                       <Link href={`/products/${item.productId}`} className="font-medium hover:text-primary transition-colors">
-                        {item.name}
+                        {item.productName || "Unknown Product"}
                       </Link>
                       <p className="text-sm text-muted-foreground">{formatPrice(item.price)} per unit</p>
                     </div>
