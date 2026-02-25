@@ -16,59 +16,58 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableWebSecurity
-public class SpringSecurity{
+public class SpringSecurity {
 
-    @Autowired
-    private JwtAuthenticationFilter jwtFilter;
+        @Autowired
+        private JwtAuthenticationFilter jwtFilter;
 
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        @Bean
+        public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
-        http
-                .cors(org.springframework.security.config.Customizer.withDefaults())
-                .csrf(csrf -> csrf.disable())
-                .sessionManagement(sm ->
-                        sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth
-                        // PUBLIC ENDPOINTS
-                        .requestMatchers(
-                                "/auth/**",
-                                "/api/products",
-                                "/api/products/{id}",
-                                "/api/categories",
-                                "/api/payments/webhook",
-                                "/health",
-                                "/api/upload"
-                        ).permitAll()
+                http
+                                .cors(org.springframework.security.config.Customizer.withDefaults())
+                                .csrf(csrf -> csrf.disable())
+                                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                                .authorizeHttpRequests(auth -> auth
+                                                // PUBLIC ENDPOINTS
+                                                .requestMatchers(
+                                                                "/auth/**",
+                                                                "/api/products",
+                                                                "/api/products/{id}",
+                                                                "/api/categories",
+                                                                "/api/payments/webhook",
+                                                                "/api/webhooks/tracking",
+                                                                "/health",
+                                                                "/api/upload")
+                                                .permitAll()
 
-                        // AUTHENTICATED ENDPOINTS
-                        .requestMatchers("/api/user/profile/**")
-                        .authenticated()
+                                                // AUTHENTICATED ENDPOINTS
+                                                .requestMatchers("/api/user/profile/**")
+                                                .authenticated()
 
-                        .requestMatchers("/api/cart/","/api/cart/**")
-                        .authenticated()
+                                                .requestMatchers("/api/cart/", "/api/cart/**")
+                                                .authenticated()
 
-                        .requestMatchers("/api/orders/{id}", "/api/order")
-                        .authenticated()
+                                                .requestMatchers("/api/orders/{id}", "/api/order")
+                                                .authenticated()
 
-                        .requestMatchers("/api/payment/order")
-                        .authenticated()
+                                                .requestMatchers("/api/payment/order")
+                                                .authenticated()
 
-                        // ADMIN ENDPOINTS
-                        .requestMatchers("/api/products/**", "/api/categories/**", "/api/order/admin/**", "/api/upload")
-                        .hasRole("ADMIN")
+                                                // ADMIN ENDPOINTS
+                                                .requestMatchers("/api/products/**", "/api/categories/**",
+                                                                "/api/order/admin/**", "/api/upload")
+                                                .hasRole("ADMIN")
 
-                        // ALL OTHER REQUESTS MUST BE AUTHENTICATED
-                        .anyRequest().authenticated()
-                )
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+                                                // ALL OTHER REQUESTS MUST BE AUTHENTICATED
+                                                .anyRequest().authenticated())
+                                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
-        return http.build();
-    }
+                return http.build();
+        }
 
-    @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration auth) throws Exception {
-        return auth.getAuthenticationManager();
-    }
+        @Bean
+        public AuthenticationManager authenticationManager(AuthenticationConfiguration auth) throws Exception {
+                return auth.getAuthenticationManager();
+        }
 }
-
