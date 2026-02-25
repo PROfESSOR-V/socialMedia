@@ -15,4 +15,6 @@ public interface OrderRepository extends MongoRepository<Order, ObjectId> {
 
     Optional<Order> findByAwb(String awb);
 
+    List<Order> findByTrackingStatusNot(String trackingStatus);
+
 }

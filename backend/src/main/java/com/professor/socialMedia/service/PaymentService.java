@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -37,7 +38,7 @@ public class PaymentService {
     private ObjectMapper objectMapper;
 
     @Autowired
-    private ShiprocketOrderService shiprocketOrderService;
+    private ShipmozoShipmentService shipmozoShipmentService;
 
     @Value("${cashfree.webhook.secret}")
     private String webhookSecret;
@@ -139,11 +140,16 @@ public class PaymentService {
                     });
                 }
 
-                // Push order to Shiprocket logic
+                // Push order to Shipmozo logic
                 try {
-                    shiprocketOrderService.createShipment(order);
+                    Map<String, Object> shipmozoRes = shipmozoShipmentService.createShipment(order);
+                    if (shipmozoRes != null && shipmozoRes.containsKey("awb_number")) {
+                        order.setAwb(String.valueOf(shipmozoRes.get("awb_number")));
+                        order.setCourier("Shipmozo");
+                        order.setTrackingStatus("Shipment Created");
+                    }
                 } catch (Exception e) {
-                    System.err.println("Non-blocking issue: Failed to transmit to Shiprocket: " + e.getMessage());
+                    System.err.println("Non-blocking issue: Failed to transmit to Shipmozo: " + e.getMessage());
                 }
 
             } else {
