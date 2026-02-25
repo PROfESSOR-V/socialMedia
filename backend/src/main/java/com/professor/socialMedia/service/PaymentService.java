@@ -36,6 +36,9 @@ public class PaymentService {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
+    private ShiprocketOrderService shiprocketOrderService;
+
     @Value("${cashfree.webhook.secret}")
     private String webhookSecret;
 
@@ -134,6 +137,13 @@ public class PaymentService {
                         cart.setItems(new ArrayList<>());
                         cartRepository.save(cart);
                     });
+                }
+
+                // Push order to Shiprocket logic
+                try {
+                    shiprocketOrderService.createShipment(order);
+                } catch (Exception e) {
+                    System.err.println("Non-blocking issue: Failed to transmit to Shiprocket: " + e.getMessage());
                 }
 
             } else {

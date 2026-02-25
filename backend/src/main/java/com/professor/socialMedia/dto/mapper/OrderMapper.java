@@ -34,6 +34,9 @@ public class OrderMapper {
 
         orderDto.setTotalAmount(order.getTotalAmount());
         orderDto.setStatus(order.getStatus());
+        orderDto.setAwb(order.getAwb());
+        orderDto.setCourier(order.getCourier());
+        orderDto.setTrackingStatus(order.getTrackingStatus());
         orderDto.setCreatedAt(order.getCreatedAt());
         return orderDto;
     }

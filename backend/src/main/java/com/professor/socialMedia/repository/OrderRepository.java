@@ -13,4 +13,6 @@ public interface OrderRepository extends MongoRepository<Order, ObjectId> {
 
     Optional<Order> findByIdAndUserId(ObjectId orderId, ObjectId userId);
 
+    Optional<Order> findByAwb(String awb);
+
 }

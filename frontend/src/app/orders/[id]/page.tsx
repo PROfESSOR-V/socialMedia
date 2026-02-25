@@ -20,6 +20,9 @@ interface Order {
   id: string;
   totalAmount: number;
   status: string;
+  awb?: string;
+  courier?: string;
+  trackingStatus?: string;
   createdAt: string;
   items: OrderItem[];
 }
@@ -74,14 +77,23 @@ export default function OrderDetailsPage() {
 
   // Determine active tracking step
   let currentStepIndex = 0;
-  if (order.status === 'PAID') {
-    currentStepIndex = 1; // Processing
-    // Simulate shipping after a day
-    const hoursSincePlaced = (new Date().getTime() - new Date(order.createdAt).getTime()) / (1000 * 60 * 60);
-    if (hoursSincePlaced > 24) currentStepIndex = 2; // Shipped via Shiprocket
-    if (hoursSincePlaced > 72) currentStepIndex = 3; // Delivered
+  if (order.status === 'PAID' || order.status === 'PENDING') {
+    if (order.status === 'PAID') {
+        currentStepIndex = 1; // Processing
+    }
+    // Map live Shiprocket tracking status
+    const statusStr = order.trackingStatus ? order.trackingStatus.toUpperCase() : "";
+    if (statusStr.includes('PENDING') || statusStr.includes('PICKUP')) {
+        currentStepIndex = 1;
+    }
+    if (statusStr.includes('SHIPPED') || statusStr.includes('IN TRANSIT') || statusStr.includes('OUT FOR DELIVERY') || statusStr.includes('DISPATCHED')) {
+        currentStepIndex = 2; // Shipped via Shiprocket
+    }
+    if (statusStr.includes('DELIVERED') || statusStr.includes('COMPLETED')) {
+        currentStepIndex = 3; // Delivered
+    }
   } else if (order.status === 'DELIVERED') {
-    currentStepIndex = 4;
+    currentStepIndex = 3;
   } else if (order.status === 'CANCELLED' || order.status === 'FAILED') {
     currentStepIndex = -1; // Hide tracking for generic failures
   }
@@ -134,6 +146,14 @@ export default function OrderDetailsPage() {
               <h2 className="text-lg font-medium text-primary">Shiprocket Tracking</h2>
               <Image src="/assets/Shiprocket_logo.png" alt="Shiprocket" width={100} height={24} className="opacity-80 object-contain h-6" onError={(e) => { e.currentTarget.style.display = 'none' }} />
             </div>
+
+            {order.awb && (
+               <div className="mb-6 p-4 bg-secondary/10 rounded-md border border-secondary text-sm flex flex-col sm:flex-row sm:gap-6 gap-2">
+                 <p><span className="text-muted-foreground mr-1">AWB:</span> <span className="font-medium tracking-wide">{order.awb}</span></p>
+                 <p><span className="text-muted-foreground mr-1">Courier:</span> <span className="font-medium">{order.courier || "Pending Assignment"}</span></p>
+                 <p className="sm:ml-auto"><span className="text-muted-foreground mr-1">Status:</span> <span className="font-semibold text-primary">{order.trackingStatus}</span></p>
+               </div>
+            )}
 
             {isCancelled ? (
               <div className="rounded-md bg-red-50 p-4 border border-red-100">

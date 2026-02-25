@@ -17,6 +17,9 @@ public class OrderDto {
     private List<OrderItemDto> items;
     private Double totalAmount;
     private OrderStatus status;
+    private String awb;
+    private String courier;
+    private String trackingStatus;
     private Instant createdAt;
     private Instant updatedAt;
 }

@@ -24,7 +24,12 @@ public class Order {
     private ObjectId paymentId;
     private ObjectId cartId;
 
-    private Instant createdAt= Instant.now();
+    // Shiprocket Tracking Fields
+    private String shipmentId;
+    private String awb;
+    private String courier;
+    private String trackingStatus;
 
+    private Instant createdAt = Instant.now();
 
 }
