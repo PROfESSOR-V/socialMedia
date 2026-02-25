@@ -20,7 +20,7 @@ public class ShiprocketWebhookController {
     @Autowired
     private OrderRepository orderRepository;
 
-    @PostMapping("/shiprocket")
+    @PostMapping("/tracking")
     public ResponseEntity<String> handleShiprocketWebhook(
             @RequestHeader(value = "x-api-key", required = false) String token,
             @RequestBody Map<String, Object> payload) {
