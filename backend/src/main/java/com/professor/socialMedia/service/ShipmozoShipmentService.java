@@ -43,8 +43,8 @@ public class ShipmozoShipmentService {
 
                 HttpHeaders headers = new HttpHeaders();
                 headers.setContentType(MediaType.APPLICATION_JSON);
-                headers.set("X-PUBLIC-KEY", publicKey);
-                headers.set("X-PRIVATE-KEY", privateKey);
+                headers.set("public-key", publicKey);
+                headers.set("private-key", privateKey);
 
                 Map<String, Object> body = new HashMap<>();
                 body.put("order_id", order.getId().toHexString());

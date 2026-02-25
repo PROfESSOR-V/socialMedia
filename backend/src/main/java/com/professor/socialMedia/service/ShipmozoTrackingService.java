@@ -27,8 +27,8 @@ public class ShipmozoTrackingService {
         RestTemplate rest = new RestTemplate();
 
         HttpHeaders headers = new HttpHeaders();
-        headers.set("X-PUBLIC-KEY", publicKey);
-        headers.set("X-PRIVATE-KEY", privateKey);
+        headers.set("public-key", publicKey);
+        headers.set("private-key", privateKey);
 
         HttpEntity<Void> req = new HttpEntity<>(headers);
 
