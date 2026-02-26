@@ -135,7 +135,7 @@ public class OrderControler {
                         return ResponseEntity.ok(ApiResponse.success("Order cancelled successfully", orderDto));
                 } catch (RuntimeException e) {
                         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
-                                        java.util.Collections.singletonMap("error", e.getMessage()));
+                                        ApiResponse.error(e.getMessage()));
                 }
         }
 }
