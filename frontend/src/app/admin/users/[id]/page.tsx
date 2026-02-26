@@ -155,7 +155,7 @@ export default function UserDetailsPage({ params }: { params: Promise<{ id: stri
           <div className="flex-1 space-y-4 mt-2 md:mt-10">
             <div>
               <h2 className="text-3xl font-serif font-medium text-black tracking-tight">
-                {userData.name || "Unnamed User"}
+                {userData.name || (userData.addresses && userData.addresses.length > 0 ? userData.addresses[0].name : "Unknown User")}
               </h2>
               <div className="flex flex-wrap items-center gap-3 mt-2 text-sm">
                 <span className="inline-flex items-center gap-1.5 text-zinc-600 bg-zinc-50 border border-zinc-200 px-2.5 py-1 rounded-full font-medium">
