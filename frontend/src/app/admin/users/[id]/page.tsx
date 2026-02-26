@@ -137,7 +137,7 @@ export default function UserDetailsPage({ params }: { params: Promise<{ id: stri
           <div>
             <h1 className="text-2xl font-serif text-black tracking-tight">User Details</h1>
             <p className="text-zinc-500 text-sm mt-1 flex items-center gap-2">
-              <span className="font-mono text-xs bg-zinc-100 px-1.5 py-0.5 rounded text-zinc-600">ID: {userData.id}</span>
+              <span className="font-mono text-xs bg-zinc-100 px-1.5 py-0.5 rounded text-zinc-600">ID: {String((userData.id as any)?.timestamp || userData.id)}</span>
             </p>
           </div>
         </div>

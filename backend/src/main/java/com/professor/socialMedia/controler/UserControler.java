@@ -45,7 +45,10 @@ public class UserControler {
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<?>> getAllUsers() {
-        return ResponseEntity.ok(ApiResponse.success("Users retrieved successfully", userService.findAll()));
+        List<UserDto> users = userService.findAll().stream()
+                .map(user -> userMapper.mapUser(user))
+                .toList();
+        return ResponseEntity.ok(ApiResponse.success("Users retrieved successfully", users));
     }
 
     /**

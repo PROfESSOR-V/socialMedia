@@ -75,10 +75,11 @@ export default function AdminUsersPage() {
 
   const filteredUsers = users.filter((u) => {
     const query = searchQuery.toLowerCase();
+    const idString = String((u.id as any)?.timestamp || u.id || "");
     return (
       u.name?.toLowerCase().includes(query) ||
       u.email?.toLowerCase().includes(query) ||
-      u.id?.toLowerCase().includes(query) ||
+      idString.toLowerCase().includes(query) ||
       u.mobileNumber?.includes(query)
     );
   });
@@ -179,10 +180,11 @@ export default function AdminUsersPage() {
                 filteredUsers.map((u) => {
                   const country = u.addresses && u.addresses.length > 0 ? u.addresses[0].country : "N/A";
                   
+                  const idString = String((u.id as any)?.timestamp || u.id || "");
                   return (
-                    <tr key={u.id} className="hover:bg-zinc-50/80 transition-colors group">
+                    <tr key={idString} className="hover:bg-zinc-50/80 transition-colors group">
                       <td className="p-4 whitespace-nowrap text-sm font-medium text-zinc-900 border-r border-zinc-100/50">
-                        {u.id.substring(0, 10)}...
+                        {idString.substring(0, 10)}...
                       </td>
                       <td className="p-4 whitespace-nowrap">
                         <div className="flex flex-col">
@@ -198,7 +200,7 @@ export default function AdminUsersPage() {
                       </td>
                       <td className="p-4 whitespace-nowrap text-right">
                         <Link 
-                          href={`/admin/users/${u.id}`}
+                          href={`/admin/users/${idString}`}
                           className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-zinc-400 hover:text-black hover:bg-zinc-100 transition-all opacity-0 group-hover:opacity-100 focus:opacity-100 placeholder"
                           aria-label={`View details for ${u.name || u.email}`}
                         >
