@@ -20,6 +20,8 @@ interface Order {
   id: string;
   totalAmount: number;
   status: string;
+  paymentStatus?: string;
+  refundReferenceId?: string;
   createdAt: string;
   items: OrderItem[];
 }
@@ -162,12 +164,16 @@ export default function OrdersPage() {
                     <p className="font-medium">{formatPrice(order.totalAmount)}</p>
                   </div>
                   <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${
+                    order.paymentStatus === 'REFUND_INITIATED' ? 'bg-purple-100 text-purple-800' :
+                    order.paymentStatus === 'REFUNDED' ? 'bg-gray-100 text-gray-800' :
                     order.status === 'PAID' ? 'bg-green-100 text-green-800' : 
                     order.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' : 
                     order.status === 'FAILED' ? 'bg-red-100 text-red-800' : 
                     'bg-gray-100 text-gray-800'
                   }`}>
-                    {order.status}
+                    {order.paymentStatus === 'REFUND_INITIATED' ? 'REFUND INITIATED' :
+                     order.paymentStatus === 'REFUNDED' ? 'REFUNDED' :
+                     order.status}
                   </span>
                 </div>
               </div>

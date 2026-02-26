@@ -12,6 +12,9 @@ interface OrderData {
   userId: string;
   totalAmount: number;
   status: string;
+  paymentStatus?: string;
+  shipmentStatus?: string;
+  refundReferenceId?: string;
   createdAt: string;
 }
 
@@ -107,11 +110,15 @@ export default function AdminOrdersPage() {
       idString.toLowerCase().includes(query) ||
       o.userName.toLowerCase().includes(query) ||
       o.userEmail.toLowerCase().includes(query) ||
-      o.status.toLowerCase().includes(query)
+      o.status.toLowerCase().includes(query) ||
+      (o.paymentStatus && o.paymentStatus.toLowerCase().includes(query))
     );
   });
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: string, paymentStatus?: string) => {
+    if (paymentStatus === "REFUND_INITIATED") return "bg-purple-50 text-purple-700 border-purple-200";
+    if (paymentStatus === "REFUNDED") return "bg-gray-50 text-gray-700 border-gray-200";
+
     switch (status.toUpperCase()) {
       case "DELIVERED": return "bg-emerald-50 text-emerald-700 border-emerald-200";
       case "SHIPPED": return "bg-blue-50 text-blue-700 border-blue-200";
@@ -122,6 +129,12 @@ export default function AdminOrdersPage() {
       case "FAILED": return "bg-red-50 text-red-700 border-red-200";
       default: return "bg-zinc-50 text-zinc-700 border-zinc-200";
     }
+  };
+
+  const getDisplayStatus = (order: CombinedOrder) => {
+    if (order.paymentStatus === "REFUND_INITIATED") return "REFUND PENDING";
+    if (order.paymentStatus === "REFUNDED") return "REFUNDED";
+    return order.status;
   };
 
   if (error) {
@@ -179,6 +192,7 @@ export default function AdminOrdersPage() {
                 <th className="px-6 py-3">Customer</th>
                 <th className="px-6 py-3">Date</th>
                 <th className="px-6 py-3">Status</th>
+                <th className="px-6 py-3">Cashfree Ref ID</th>
                 <th className="px-6 py-3">Total</th>
                 <th className="px-6 py-3 text-right">Actions</th>
               </tr>
@@ -213,9 +227,12 @@ export default function AdminOrdersPage() {
                         {new Date(order.createdAt).toLocaleDateString()}
                       </td>
                       <td className="px-6 py-4">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${getStatusColor(order.status)}`}>
-                          {order.status}
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${getStatusColor(order.status, order.paymentStatus)}`}>
+                          {getDisplayStatus(order)}
                         </span>
+                      </td>
+                      <td className="px-6 py-4 text-zinc-500 font-mono text-xs">
+                        {order.refundReferenceId || "-"}
                       </td>
                       <td className="px-6 py-4 text-zinc-900 font-medium">
                         {formatPrice(order.totalAmount)}

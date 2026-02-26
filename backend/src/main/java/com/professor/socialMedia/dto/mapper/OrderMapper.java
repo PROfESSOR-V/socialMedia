@@ -34,9 +34,16 @@ public class OrderMapper {
 
         orderDto.setTotalAmount(order.getTotalAmount());
         orderDto.setStatus(order.getStatus());
+        orderDto.setPaymentStatus(order.getPaymentStatus() != null ? order.getPaymentStatus().name() : null);
+        orderDto.setShipmentStatus(order.getShipmentStatus() != null ? order.getShipmentStatus().name() : null);
+        orderDto.setRefundRequestedAt(order.getRefundRequestedAt());
+        orderDto.setRefundCompletedAt(order.getRefundCompletedAt());
+        orderDto.setRefundReferenceId(order.getRefundReferenceId());
+
         orderDto.setAwb(order.getAwb());
         orderDto.setCourier(order.getCourier());
         orderDto.setTrackingStatus(order.getTrackingStatus());
+        orderDto.setTrackingData(order.getTrackingData());
         orderDto.setCreatedAt(order.getCreatedAt());
         return orderDto;
     }

@@ -23,6 +23,12 @@ interface Order {
   awb?: string;
   courier?: string;
   trackingStatus?: string;
+  trackingData?: any;
+  paymentStatus?: string;
+  shipmentStatus?: string;
+  refundReferenceId?: string;
+  refundRequestedAt?: string;
+  refundCompletedAt?: string;
   createdAt: string;
   items: OrderItem[];
 }
@@ -70,40 +76,57 @@ export default function OrderDetailsPage() {
 
   const isCancelled = order.status === 'CANCELLED' || order.status === 'FAILED';
 
-  // Dynamic tracking steps
-  const steps = [];
-  if (!isCancelled) {
-    steps.push({ id: "placed", title: "Order Placed", description: "Terminal received your order", icon: Package });
+  const sStatus = order.shipmentStatus || "NOT_CREATED";
+  const statusStr = order.trackingStatus ? order.trackingStatus.toUpperCase() : "";
 
-    if (order.status === 'PAID' || order.status === 'DELIVERED' || order.status === 'SHIPPED') {
-      steps.push({ id: "processing", title: "Processing", description: "Order is being packed at the warehouse", icon: Factory });
+  const isProcessing = order.status === 'PAID' || order.status === 'DELIVERED' || order.status === 'SHIPPED' || sStatus !== 'NOT_CREATED';
+  const isPickupPending = sStatus === 'MANIFESTED' || sStatus === 'PICKED_UP' || sStatus === 'IN_TRANSIT' || sStatus === 'DELIVERED';
+  const isPickupComplete = sStatus === 'PICKED_UP' || sStatus === 'IN_TRANSIT' || sStatus === 'DELIVERED';
+  const isInTransit = sStatus === 'IN_TRANSIT' || sStatus === 'DELIVERED';
+  const isOutForDelivery = statusStr.includes('OUT FOR DELIVERY') || sStatus === 'DELIVERED';
+  const isDelivered = sStatus === 'DELIVERED' || statusStr.includes('DELIVERED') || statusStr.includes('COMPLETED');
+
+  const allSteps = [
+    { id: "created", title: "Order Created", description: "Terminal received your order", icon: Package, completed: true, current: !isProcessing },
+    { id: "processing", title: "Processing", description: "Order is being packed at the warehouse", icon: Factory, completed: isProcessing, current: isProcessing && !isPickupPending },
+    { id: "pickup_pending", title: "Pickup Pending", description: "Awaiting courier pickup", icon: Truck, completed: isPickupPending, current: isPickupPending && !isPickupComplete },
+    { id: "pickup_complete", title: "Pickup Complete", description: "Handed over to delivery partner", icon: Truck, completed: isPickupComplete, current: isPickupComplete && !isInTransit },
+    { id: "transit", title: "In Transit", description: "Your package is on the way", icon: Truck, completed: isInTransit, current: isInTransit && !isOutForDelivery },
+    { id: "out_for_delivery", title: "Out for Delivery", description: "Your package will be delivered today", icon: MapPin, completed: isOutForDelivery, current: isOutForDelivery && !isDelivered },
+    { id: "delivered", title: "Delivered", description: "Package arrived at destination", icon: CheckCircle2, completed: isDelivered, current: isDelivered }
+  ];
+
+  const getTrackingHistory = (data: any): any[] => {
+    if (!data) return [];
+    if (Array.isArray(data)) return data;
+    if (data.tracking_data && Array.isArray(data.tracking_data.track_status)) return data.tracking_data.track_status;
+    if (data.tracking_data && Array.isArray(data.tracking_data)) return data.tracking_data;
+    if (data.scans && Array.isArray(data.scans)) return data.scans;
+    if (data.history && Array.isArray(data.history)) return data.history;
+    
+    for (const key in data) {
+       if (Array.isArray(data[key]) && data[key].length > 0 && typeof data[key][0] === 'object') {
+           return data[key];
+       }
     }
+    return [];
+  };
 
-    const statusStr = order.trackingStatus ? order.trackingStatus.toUpperCase() : "";
+  const trackingHistories = getTrackingHistory(order.trackingData);
 
-    if (statusStr.includes('DISPATCHED') || statusStr.includes('SHIPPED') || order.status === 'SHIPPED') {
-      steps.push({ id: "shipped", title: "Dispatched", description: "Handed over to delivery partner", icon: Truck });
+  const isRefundInitiated = order.paymentStatus === 'REFUND_INITIATED';
+  const isRefunded = order.paymentStatus === 'REFUNDED';
+  const isRefundFlow = isRefundInitiated || isRefunded;
+
+  const refundSteps = [];
+  if (isRefundFlow) {
+    refundSteps.push({ id: "refund_requested", title: "Refund Requested", description: "Your cancellation request has been received.", icon: Package });
+    if (isRefundInitiated) {
+      refundSteps.push({ id: "refund_processing", title: "Processing Refund", description: "Refund is being processed by the merchant.", icon: Factory });
     }
-
-    if (statusStr.includes('IN TRANSIT')) {
-      if (!steps.find(s => s.id === "shipped")) {
-        steps.push({ id: "shipped", title: "Dispatched", description: "Handed over to delivery partner", icon: Truck });
-      }
-      steps.push({ id: "transit", title: "In Transit", description: "Your package is on the way", icon: Truck });
-    }
-
-    if (statusStr.includes('OUT FOR DELIVERY')) {
-      if (!steps.find(s => s.id === "shipped")) {
-        steps.push({ id: "shipped", title: "Dispatched", description: "Handed over to delivery partner", icon: Truck });
-      }
-      steps.push({ id: "out_for_delivery", title: "Out for Delivery", description: "Your package will be delivered today", icon: MapPin });
-    }
-
-    if (order.status === 'DELIVERED' || statusStr.includes('DELIVERED') || statusStr.includes('COMPLETED')) {
-      if (!steps.find(s => s.id === "shipped")) {
-        steps.push({ id: "shipped", title: "Dispatched", description: "Handed over to delivery partner", icon: Truck });
-      }
-      steps.push({ id: "delivered", title: "Delivered", description: "Package arrived at destination", icon: CheckCircle2 });
+    if (isRefunded) {
+      refundSteps.push({ id: "refund_processing", title: "Refund Processed", description: "Refund has been processed by the merchant.", icon: Factory });
+      refundSteps.push({ id: "refund_completed", title: "Refund Completed", description: "Refund successfully credited back to original payment method.", icon: CheckCircle2 });
     }
   }
 
@@ -132,13 +155,15 @@ export default function OrderDetailsPage() {
             })}</span>
           </p>
           <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${
+            order.paymentStatus === 'REFUND_INITIATED' ? 'bg-purple-100 text-purple-800' :
+            order.paymentStatus === 'REFUNDED' ? 'bg-gray-100 text-gray-800' :
             order.status === 'PAID' ? 'bg-green-100 text-green-800' : 
             order.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' : 
             order.status === 'FAILED' ? 'bg-red-100 text-red-800' : 
             order.status === 'DELIVERED' ? 'bg-blue-100 text-blue-800' :
             'bg-gray-100 text-gray-800'
           }`}>
-            Status: {order.status}
+            Status: {order.paymentStatus === 'REFUND_INITIATED' ? 'REFUND INITIATED' : order.paymentStatus === 'REFUNDED' ? 'REFUNDED' : order.status}
           </span>
         </div>
       </div>
@@ -150,10 +175,12 @@ export default function OrderDetailsPage() {
           {/* Tracker */}
           <section className="bg-card border rounded-lg p-6 shadow-sm">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-medium text-primary">Tracking</h2>
+              <h2 className="text-lg font-medium text-primary">
+                {isRefundFlow ? "Refund Tracking" : "Tracking"}
+              </h2>
             </div>
 
-            {order.awb && (
+            {order.awb && !isRefundFlow && !isCancelled && (
                <div className="mb-6 p-4 bg-secondary/10 rounded-md border border-secondary text-sm flex flex-col sm:flex-row sm:gap-6 gap-2">
                  <p><span className="text-muted-foreground mr-1">AWB:</span> <span className="font-medium tracking-wide">{order.awb}</span></p>
                  <p><span className="text-muted-foreground mr-1">Courier:</span> <span className="font-medium">{order.courier || "Pending Assignment"}</span></p>
@@ -161,25 +188,23 @@ export default function OrderDetailsPage() {
                </div>
             )}
 
-            {isCancelled ? (
-              <div className="rounded-md bg-red-50 p-4 border border-red-100">
-                <div className="flex">
-                  <div className="flex-shrink-0">
-                    <XCircle className="h-5 w-5 text-red-400" aria-hidden="true" />
-                  </div>
-                  <div className="ml-3">
-                    <h3 className="text-sm font-medium text-red-800">Order Delivery Cancelled</h3>
-                    <p className="mt-2 text-sm text-red-700">
-                      This order was cancelled and will not be shipped. If a payment was made, a refund has been initiated.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ) : steps.length > 0 ? (
+            {isRefundFlow ? (
               <div className="relative pt-4 pb-8">
+                {isRefunded && order.refundReferenceId && (
+                  <div className="mb-6 p-4 bg-green-50 rounded-md border border-green-200 text-sm flex flex-col sm:flex-row sm:gap-6 gap-2 text-green-800">
+                    <p><span className="font-semibold">Refund Successful</span></p>
+                    <p><span className="font-medium">Ref ID:</span> <span className="tracking-wide">{order.refundReferenceId}</span></p>
+                  </div>
+                )}
+                {isRefundInitiated && (
+                  <div className="mb-6 p-4 bg-purple-50 rounded-md border border-purple-200 text-sm flex flex-col sm:flex-row sm:gap-6 gap-2 text-purple-800">
+                    <p><span className="font-semibold">Refund Initiated</span></p>
+                    <p>It usually takes 5-7 business days for the refund to reflect in your original payment method.</p>
+                  </div>
+                )}
                 <div className="space-y-8 relative">
-                  {steps.map((step, index) => {
-                    const isLastStep = index === steps.length - 1;
+                  {refundSteps.map((step, index) => {
+                    const isLastStep = index === refundSteps.length - 1;
                     const Icon = step.icon;
 
                     return (
@@ -189,21 +214,77 @@ export default function OrderDetailsPage() {
                           <div className="absolute left-[21px] top-8 bottom-[-2rem] w-0.5 bg-primary z-0" />
                         )}
                         {/* Dotted pending line */}
-                        {isLastStep && step.id !== "delivered" && (
+                        {isLastStep && step.id !== "refund_completed" && (
                           <div className="absolute left-[21px] top-11 h-12 w-0.5 border-l-2 border-dashed border-zinc-300 z-0" />
                         )}
                         
                         <div className={cn(
                           "relative z-10 flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 bg-white transition-colors duration-200 border-primary",
-                          isLastStep ? "bg-primary text-primary-foreground" : "text-primary"
+                          isLastStep && step.id === 'refund_completed' ? "bg-primary text-primary-foreground" : "text-primary"
                         )}>
-                          {!isLastStep ? (
+                          {(isLastStep && step.id !== 'refund_completed') ? (
+                             <div className="h-2 w-2 rounded-full bg-primary animate-ping" />
+                          ) : (
+                             <Icon className="h-5 w-5" />
+                          )}
+                        </div>
+                        <div className="flex flex-col justify-center pt-1 pb-2">
+                          <h4 className="text-sm font-medium text-foreground">{step.title}</h4>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {step.description}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : isCancelled ? (
+              <div className="rounded-md bg-red-50 p-4 border border-red-100">
+                <div className="flex">
+                  <div className="flex-shrink-0">
+                    <XCircle className="h-5 w-5 text-red-400" aria-hidden="true" />
+                  </div>
+                  <div className="ml-3">
+                    <h3 className="text-sm font-medium text-red-800">Order Cancelled</h3>
+                    <p className="mt-2 text-sm text-red-700">
+                      This order was cancelled. If a payment was made but not refunded, please contact support.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ) : allSteps.length > 0 ? (
+              <div className="relative pt-4 pb-8">
+                <div className="space-y-8 relative">
+                  {allSteps.map((step, index) => {
+                    const isLastItem = index === allSteps.length - 1;
+                    const Icon = step.icon;
+
+                    return (
+                      <div key={step.id} className="flex gap-4 relative">
+                        {!isLastItem && step.completed && !step.current && (
+                          <div className="absolute left-[21px] top-8 bottom-[-2rem] w-0.5 bg-primary z-0" />
+                        )}
+                        {!isLastItem && step.current && (
+                          <div className="absolute left-[21px] top-11 h-12 w-0.5 border-l-2 border-dashed border-zinc-300 z-0" />
+                        )}
+                        {!isLastItem && !step.completed && (
+                          <div className="absolute left-[21px] top-8 bottom-[-2rem] w-0.5 bg-zinc-200 z-0" />
+                        )}
+                        
+                        <div className={cn(
+                          "relative z-10 flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 transition-colors duration-200",
+                          step.completed && !step.current ? "bg-white border-primary text-primary" : 
+                          step.current ? "bg-primary border-primary text-primary-foreground" : 
+                          "bg-zinc-50 border-zinc-200 text-zinc-400"
+                        )}>
+                          {step.completed && !step.current ? (
                             <CheckCircle2 className="h-6 w-6" />
                           ) : (
                             <Icon className="h-5 w-5" />
                           )}
                         </div>
-                        <div className="flex flex-col justify-center pt-1 pb-2">
+                        <div className={cn("flex flex-col justify-center pt-1 pb-2", !step.completed && "opacity-50")}>
                           <h4 className="text-sm font-medium text-foreground">{step.title}</h4>
                           <p className="text-xs text-muted-foreground mt-1">
                             {step.description}
@@ -218,6 +299,39 @@ export default function OrderDetailsPage() {
                 <p className="text-sm text-muted-foreground">Tracking information is unavailable for this order status.</p>
             )}
           </section>
+
+          {/* Detailed Tracking History Card */}
+          {(!isRefundFlow && !isCancelled && trackingHistories.length > 0) && (
+            <section className="bg-card border rounded-lg p-6 shadow-sm">
+              <h2 className="text-lg font-medium text-primary mb-6">Tracking Details</h2>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm whitespace-nowrap">
+                  <thead className="bg-zinc-50 text-zinc-500 font-medium">
+                    <tr>
+                      <th className="px-4 py-3 border-b">Date Time</th>
+                      <th className="px-4 py-3 border-b">Location</th>
+                      <th className="px-4 py-3 border-b">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-zinc-100">
+                     {trackingHistories.map((row, idx) => (
+                        <tr key={idx} className="hover:bg-zinc-50 transition-colors">
+                          <td className="px-4 py-4 text-zinc-600">
+                            {row.date || row.Date || row.date_time || row.time || row.timestamp || "-"}
+                          </td>
+                          <td className="px-4 py-4 text-zinc-800">
+                            {row.location || row.Location || row.city || "-"}
+                          </td>
+                          <td className="px-4 py-4 text-zinc-900 font-medium">
+                            {row.status || row.Status || row.activity || row.message || "-"}
+                          </td>
+                        </tr>
+                     ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          )}
 
           {/* Items List */}
           <section className="bg-card border rounded-lg p-6 shadow-sm">

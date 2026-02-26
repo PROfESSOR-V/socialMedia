@@ -112,25 +112,30 @@ public class OrderControler {
         /**
          * Cancel an order by ID
          */
-        @PutMapping("/{id}/cancel")
-        public ResponseEntity<ApiResponse<OrderDto>> cancelOrder(
+        @PostMapping("/{id}/cancel")
+        public ResponseEntity<?> cancelOrder(
                         @AuthenticationPrincipal CustomUserDetail user,
                         @PathVariable String id) {
-                User userEntity = userService.findByEmail(user.getUsername()).orElseThrow(
-                                () -> new RuntimeException("User not found!"));
-                Order order = orderService.findById(new ObjectId(id));
-                if (order == null) {
-                        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-                                        ApiResponse.error("Order not found"));
-                }
-                // Check if the order belongs to the current user
-                if (!order.getUserId().equals(userEntity.getId())) {
-                        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
-                                        ApiResponse.error("You don't have permission to view this order"));
-                }
+                try {
+                        User userEntity = userService.findByEmail(user.getUsername()).orElseThrow(
+                                        () -> new RuntimeException("User not found!"));
+                        Order order = orderService.findById(new ObjectId(id));
+                        if (order == null) {
+                                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                                                ApiResponse.error("Order not found"));
+                        }
+                        // Check if the order belongs to the current user
+                        if (!order.getUserId().equals(userEntity.getId())) {
+                                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
+                                                ApiResponse.error("You don't have permission to view this order"));
+                        }
 
-                Order cancelledOrder = orderService.cancelOrder(order);
-                OrderDto orderDto = orderMapper.mapOrder(cancelledOrder);
-                return ResponseEntity.ok(ApiResponse.success("Order cancelled successfully", orderDto));
+                        Order cancelledOrder = orderService.cancelOrder(order);
+                        OrderDto orderDto = orderMapper.mapOrder(cancelledOrder);
+                        return ResponseEntity.ok(ApiResponse.success("Order cancelled successfully", orderDto));
+                } catch (RuntimeException e) {
+                        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                                        java.util.Collections.singletonMap("error", e.getMessage()));
+                }
         }
 }

@@ -19,6 +19,8 @@ public class Order {
 
     private double totalAmount;
     private OrderStatus status = OrderStatus.CREATED;
+    private ShipmentStatus shipmentStatus = ShipmentStatus.NOT_CREATED;
+    private PaymentStatus paymentStatus = PaymentStatus.CREATED;
 
     private Address shippingAddress;
     private ObjectId paymentId;
@@ -29,6 +31,12 @@ public class Order {
     private String awb;
     private String courier;
     private String trackingStatus;
+    private Object trackingData;
+
+    // Refund Tracking Fields
+    private Instant refundRequestedAt;
+    private Instant refundCompletedAt;
+    private String refundReferenceId;
 
     private Instant createdAt = Instant.now();
 

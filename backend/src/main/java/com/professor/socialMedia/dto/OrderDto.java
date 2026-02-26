@@ -20,6 +20,15 @@ public class OrderDto {
     private String awb;
     private String courier;
     private String trackingStatus;
+    private Object trackingData;
+
+    // Additional tracking fields
+    private String paymentStatus;
+    private String shipmentStatus;
+    private Instant refundRequestedAt;
+    private Instant refundCompletedAt;
+    private String refundReferenceId;
+
     private Instant createdAt;
     private Instant updatedAt;
 }

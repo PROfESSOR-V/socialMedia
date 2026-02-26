@@ -171,6 +171,64 @@ public class PaymentService {
         }
     }
 
+    @Transactional
+    public void handleRefundWebhook(String payload, String signature, String timestamp) {
+        // 1. Verify Cashfree signature
+        if (signature != null && !verifySignature(signature, payload, timestamp)) {
+            throw new RuntimeException("Invalid refund signature");
+        }
+
+        try {
+            // Parse Cashfree Webhook Payload
+            JsonNode root = objectMapper.readTree(payload);
+            String eventType = root.path("type").asText();
+
+            if (!"REFUND_STATUS_WEBHOOK".equals(eventType) && !"REFUND".equals(eventType)) {
+                return; // Ignore other webhook types
+            }
+
+            JsonNode data = root.path("data").path("refund");
+            if (data.isMissingNode()) {
+                throw new RuntimeException("Invalid refund payload format");
+            }
+
+            String reqOrderId = data.path("order_id").asText();
+            String refundId = data.path("refund_id").asText();
+            String refundStatus = data.path("refund_status").asText();
+
+            String originalOrderId = reqOrderId;
+            if (reqOrderId != null && reqOrderId.contains("_")) {
+                originalOrderId = reqOrderId.split("_")[0];
+            }
+
+            ObjectId orderId = new ObjectId(originalOrderId);
+            boolean success = "SUCCESS".equalsIgnoreCase(refundStatus);
+            boolean failed = "FAILED".equalsIgnoreCase(refundStatus);
+
+            // Fetch order
+            Order order = orderRepository.findById(orderId)
+                    .orElseThrow(() -> new RuntimeException("Order not found for refund tracking"));
+
+            // Check if already processed
+            if (order.getRefundReferenceId() != null && order.getRefundReferenceId().equals(refundId)) {
+                return; // idempotent
+            }
+
+            if (success) {
+                order.setPaymentStatus(PaymentStatus.REFUNDED);
+                order.setRefundReferenceId(refundId);
+                order.setRefundCompletedAt(java.time.Instant.now());
+                order.setStatus(OrderStatus.REFUNDED);
+            } else if (failed) {
+                order.setPaymentStatus(PaymentStatus.REFUND_FAILED);
+            }
+
+            orderRepository.save(order);
+        } catch (Exception e) {
+            throw new RuntimeException("Error processing refund webhook payload", e);
+        }
+    }
+
     private boolean verifySignature(String signature, String payload, String timestamp) {
         try {
             String dataToVerify = (timestamp != null ? timestamp : "") + payload;

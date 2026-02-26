@@ -74,6 +74,23 @@ public class PaymentControler {
                                         .body(ApiResponse.error("Invalid signature: " + e.getMessage()));
                 }
         }
+
+        @PostMapping("/refund-webhook")
+        public ResponseEntity<ApiResponse<Void>> refundWebhook(
+                        @RequestBody String payload,
+                        @RequestHeader(value = "x-webhook-signature", required = false) String signature,
+                        @RequestHeader(value = "x-webhook-timestamp", required = false) String timestamp) {
+
+                try {
+                        paymentService.handleRefundWebhook(payload, signature, timestamp);
+                        return ResponseEntity.accepted()
+                                        .body(ApiResponse.success("Refund webhook processed successfully", null));
+                } catch (RuntimeException e) {
+                        e.printStackTrace();
+                        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                                        .body(ApiResponse.error("Invalid signature or payload: " + e.getMessage()));
+                }
+        }
         /**
          * Get payment details by payment ID
          */

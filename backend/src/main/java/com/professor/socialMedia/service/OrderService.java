@@ -91,16 +91,20 @@ public class OrderService {
     }
 
     public Order cancelOrder(Order order) {
-        if (order.getStatus() == OrderStatus.DELIVERED || order.getStatus() == OrderStatus.CANCELLED) {
-            throw new RuntimeException("Order cannot be cancelled in its current state: " + order.getStatus());
+        ShipmentStatus shipmentStatus = order.getShipmentStatus();
+        if (shipmentStatus == ShipmentStatus.PICKED_UP ||
+                shipmentStatus == ShipmentStatus.IN_TRANSIT ||
+                shipmentStatus == ShipmentStatus.DELIVERED) {
+            throw new RuntimeException("Order cannot be cancelled after Out for Pickup");
         }
 
         boolean wasPaid = order.getStatus() == OrderStatus.PAID;
         order.setStatus(OrderStatus.CANCELLED);
-        Order savedOrder = orderRepository.save(order);
 
         if (wasPaid) {
-            // Refund stock if the order was already paid
+            order.setPaymentStatus(PaymentStatus.REFUND_INITIATED);
+            order.setRefundRequestedAt(java.time.Instant.now());
+            // Restore inventory immediately
             for (OrderItem item : order.getItems()) {
                 productRepository.findById(item.getProductId()).ifPresent(p -> {
                     p.setStock(p.getStock() + item.getQuantity());
@@ -108,6 +112,7 @@ public class OrderService {
                 });
             }
         }
-        return savedOrder;
+
+        return orderRepository.save(order);
     }
 }

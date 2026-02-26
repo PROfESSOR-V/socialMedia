@@ -37,9 +37,31 @@ public class ShipmozoTrackingScheduler {
 
                     if (status != null) {
                         order.setTrackingStatus(status);
+                        order.setTrackingData(res);
+
+                        try {
+                            String trackingJson = new com.fasterxml.jackson.databind.ObjectMapper()
+                                    .writeValueAsString(res);
+                            String lowerJson = trackingJson.toLowerCase();
+
+                            if (lowerJson.contains("delivered") || lowerJson.contains("completed")) {
+                                order.setShipmentStatus(com.professor.socialMedia.entity.ShipmentStatus.DELIVERED);
+                                order.setStatus(OrderStatus.DELIVERED);
+                            } else if (lowerJson.contains("in transit") || lowerJson.contains("vehicle departed")) {
+                                order.setShipmentStatus(com.professor.socialMedia.entity.ShipmentStatus.IN_TRANSIT);
+                            } else if (lowerJson.contains("out for pickup")
+                                    || lowerJson.contains("shipment picked up")) {
+                                order.setShipmentStatus(com.professor.socialMedia.entity.ShipmentStatus.PICKED_UP);
+                            } else if (lowerJson.contains("manifest") || lowerJson.contains("pickup scheduled")) {
+                                order.setShipmentStatus(com.professor.socialMedia.entity.ShipmentStatus.MANIFESTED);
+                            }
+                        } catch (Exception ex) {
+                            System.err.println("Failed to parse tracking JSON data for AWB: " + order.getAwb());
+                        }
 
                         if ("DELIVERED".equalsIgnoreCase(status)) {
                             order.setStatus(OrderStatus.DELIVERED);
+                            order.setShipmentStatus(com.professor.socialMedia.entity.ShipmentStatus.DELIVERED);
                         }
 
                         orderRepository.save(order);
