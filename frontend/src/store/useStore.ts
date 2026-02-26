@@ -50,6 +50,10 @@ interface StoreState {
   cachedCategories: string[] | null;
   setCachedProducts: (products: any[]) => void;
   setCachedCategories: (categories: string[]) => void;
+
+  // Hydration state
+  _hasHydrated: boolean;
+  setHasHydrated: (state: boolean) => void;
 }
 
 export const useStore = create<StoreState>()(
@@ -61,6 +65,10 @@ export const useStore = create<StoreState>()(
       setLogin: (token, user) => set({ token, user }),
       setLogout: () => set({ token: null, user: null }),
       setUser: (user) => set({ user }),
+
+      // Hydration INITIAL STATE
+      _hasHydrated: false,
+      setHasHydrated: (state) => set({ _hasHydrated: state }),
 
       // Auth Modal INITIAL STATE
       isAuthModalOpen: false,
@@ -152,6 +160,9 @@ export const useStore = create<StoreState>()(
     {
       name: 'auth-storage', // unique name
       partialize: (state) => ({ token: state.token, user: state.user, cart: state.cart }), // Save auth and cart
+      onRehydrateStorage: () => (state) => {
+        state?.setHasHydrated(true);
+      },
     }
   )
 );

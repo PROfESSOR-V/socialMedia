@@ -17,13 +17,15 @@ import {
 } from "lucide-react";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  const { user, token, setLogout } = useStore();
+  const { user, token, setLogout, _hasHydrated } = useStore();
   const router = useRouter();
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
   useEffect(() => {
+    if (!_hasHydrated) return;
+
     // Basic frontend auth check
     if (!token || !user) {
       router.push("/login");
@@ -32,7 +34,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     } else {
       setIsCheckingAuth(false);
     }
-  }, [token, user, router]);
+  }, [token, user, router, _hasHydrated]);
 
   const handleLogout = () => {
     setLogout();

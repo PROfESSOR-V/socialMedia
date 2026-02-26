@@ -81,6 +81,10 @@ public class OrderService {
                 .orElseThrow(() -> new RuntimeException("Order not found"));
     }
 
+    public List<Order> findAll() {
+        return orderRepository.findAll();
+    }
+
     public Order findByIdAndUserId(ObjectId objectId, ObjectId id) {
         return orderRepository.findByIdAndUserId(objectId, id)
                 .orElseThrow(() -> new RuntimeException("Order not found"));

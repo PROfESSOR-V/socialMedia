@@ -27,7 +27,7 @@ interface UserData {
 }
 
 export default function AdminUsersPage() {
-  const { token, user } = useStore();
+  const { token, user, _hasHydrated } = useStore();
   const router = useRouter();
   
   const [users, setUsers] = useState<UserData[]>([]);
@@ -65,18 +65,20 @@ export default function AdminUsersPage() {
   };
 
   useEffect(() => {
+    if (!_hasHydrated) return;
+
     if (!token || user?.role !== "ADMIN") {
       router.push("/login");
       return;
     }
 
     fetchUsers();
-  }, [token, user, router]);
+  }, [token, user, router, _hasHydrated]);
 
   const filteredUsers = users.filter((u) => {
     const query = searchQuery.toLowerCase();
     const idString = String((u.id as any)?.timestamp || u.id || "");
-    const userName = u.name || (u.addresses && u.addresses.length > 0 ? u.addresses[0].name : "");
+    const userName = (u.name && u.name !== "Unknown") ? u.name : (u.addresses && u.addresses.length > 0 ? u.addresses[0].name : "Unknown");
     return (
       userName.toLowerCase().includes(query) ||
       u.email?.toLowerCase().includes(query) ||
@@ -180,7 +182,7 @@ export default function AdminUsersPage() {
               ) : (
                 filteredUsers.map((u) => {
                   const country = u.addresses && u.addresses.length > 0 ? u.addresses[0].country : "N/A";
-                  
+                  const userName = (u.name && u.name !== "Unknown") ? u.name : (u.addresses && u.addresses.length > 0 ? u.addresses[0].name : "Unknown");
                   const idString = String((u.id as any)?.timestamp || u.id || "");
                   return (
                     <tr key={idString} className="hover:bg-zinc-50/80 transition-colors group">
@@ -189,7 +191,7 @@ export default function AdminUsersPage() {
                       </td>
                       <td className="p-4 whitespace-nowrap">
                         <div className="flex flex-col">
-                          <span className="text-sm font-medium text-zinc-900">{u.name || (u.addresses && u.addresses.length > 0 ? u.addresses[0].name : "Unknown")}</span>
+                          <span className="text-sm font-medium text-zinc-900">{userName}</span>
                           <span className="text-xs text-zinc-500">{u.email}</span>
                         </div>
                       </td>

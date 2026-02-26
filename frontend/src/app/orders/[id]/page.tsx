@@ -27,13 +27,6 @@ interface Order {
   items: OrderItem[];
 }
 
-const trackingSteps = [
-  { id: "placed", title: "Order Placed", description: "Terminal received your order", icon: Package },
-  { id: "processing", title: "Processing", description: "Order is being packed at the warehouse", icon: Factory },
-  { id: "shipped", title: "Shipped via Shiprocket", description: "Handed over to delivery partner", icon: Truck },
-  { id: "delivered", title: "Delivered", description: "Package arrived at destination", icon: MapPin },
-];
-
 export default function OrderDetailsPage() {
   const params = useParams();
   const id = params.id as string;
@@ -75,30 +68,44 @@ export default function OrderDetailsPage() {
     );
   }
 
-  // Determine active tracking step
-  let currentStepIndex = 0;
-  if (order.status === 'PAID' || order.status === 'PENDING') {
-    if (order.status === 'PAID') {
-        currentStepIndex = 1; // Processing
-    }
-    // Map live Shiprocket tracking status
-    const statusStr = order.trackingStatus ? order.trackingStatus.toUpperCase() : "";
-    if (statusStr.includes('PENDING') || statusStr.includes('PICKUP')) {
-        currentStepIndex = 1;
-    }
-    if (statusStr.includes('SHIPPED') || statusStr.includes('IN TRANSIT') || statusStr.includes('OUT FOR DELIVERY') || statusStr.includes('DISPATCHED')) {
-        currentStepIndex = 2; // Shipped via Shiprocket
-    }
-    if (statusStr.includes('DELIVERED') || statusStr.includes('COMPLETED')) {
-        currentStepIndex = 3; // Delivered
-    }
-  } else if (order.status === 'DELIVERED') {
-    currentStepIndex = 3;
-  } else if (order.status === 'CANCELLED' || order.status === 'FAILED') {
-    currentStepIndex = -1; // Hide tracking for generic failures
-  }
-
   const isCancelled = order.status === 'CANCELLED' || order.status === 'FAILED';
+
+  // Dynamic tracking steps
+  const steps = [];
+  if (!isCancelled) {
+    steps.push({ id: "placed", title: "Order Placed", description: "Terminal received your order", icon: Package });
+
+    if (order.status === 'PAID' || order.status === 'DELIVERED' || order.status === 'SHIPPED') {
+      steps.push({ id: "processing", title: "Processing", description: "Order is being packed at the warehouse", icon: Factory });
+    }
+
+    const statusStr = order.trackingStatus ? order.trackingStatus.toUpperCase() : "";
+
+    if (statusStr.includes('DISPATCHED') || statusStr.includes('SHIPPED') || order.status === 'SHIPPED') {
+      steps.push({ id: "shipped", title: "Dispatched", description: "Handed over to delivery partner", icon: Truck });
+    }
+
+    if (statusStr.includes('IN TRANSIT')) {
+      if (!steps.find(s => s.id === "shipped")) {
+        steps.push({ id: "shipped", title: "Dispatched", description: "Handed over to delivery partner", icon: Truck });
+      }
+      steps.push({ id: "transit", title: "In Transit", description: "Your package is on the way", icon: Truck });
+    }
+
+    if (statusStr.includes('OUT FOR DELIVERY')) {
+      if (!steps.find(s => s.id === "shipped")) {
+        steps.push({ id: "shipped", title: "Dispatched", description: "Handed over to delivery partner", icon: Truck });
+      }
+      steps.push({ id: "out_for_delivery", title: "Out for Delivery", description: "Your package will be delivered today", icon: MapPin });
+    }
+
+    if (order.status === 'DELIVERED' || statusStr.includes('DELIVERED') || statusStr.includes('COMPLETED')) {
+      if (!steps.find(s => s.id === "shipped")) {
+        steps.push({ id: "shipped", title: "Dispatched", description: "Handed over to delivery partner", icon: Truck });
+      }
+      steps.push({ id: "delivered", title: "Delivered", description: "Package arrived at destination", icon: CheckCircle2 });
+    }
+  }
 
   return (
     <div className="container mx-auto max-w-4xl px-4 py-12">
@@ -140,11 +147,10 @@ export default function OrderDetailsPage() {
         {/* Main Column */}
         <div className="md:col-span-2 space-y-8">
           
-          {/* Shiprocket Tracker */}
+          {/* Tracker */}
           <section className="bg-card border rounded-lg p-6 shadow-sm">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-medium text-primary">Shiprocket Tracking</h2>
-              <Image src="/assets/Shiprocket_logo.png" alt="Shiprocket" width={100} height={24} className="opacity-80 object-contain h-6" onError={(e) => { e.currentTarget.style.display = 'none' }} />
+              <h2 className="text-lg font-medium text-primary">Tracking</h2>
             </div>
 
             {order.awb && (
@@ -169,38 +175,36 @@ export default function OrderDetailsPage() {
                   </div>
                 </div>
               </div>
-            ) : currentStepIndex >= 0 ? (
+            ) : steps.length > 0 ? (
               <div className="relative pt-4 pb-8">
-                <div className="absolute left-[21px] top-4 bottom-4 w-0.5 bg-zinc-100" />
                 <div className="space-y-8 relative">
-                  {trackingSteps.map((step, index) => {
-                    const isActive = index <= currentStepIndex;
-                    const isLastActive = index === currentStepIndex;
+                  {steps.map((step, index) => {
+                    const isLastStep = index === steps.length - 1;
                     const Icon = step.icon;
 
                     return (
                       <div key={step.id} className="flex gap-4 relative">
                         {/* Connecting Line active state */}
-                        {isActive && index < trackingSteps.length - 1 && (
+                        {!isLastStep && (
                           <div className="absolute left-[21px] top-8 bottom-[-2rem] w-0.5 bg-primary z-0" />
+                        )}
+                        {/* Dotted pending line */}
+                        {isLastStep && step.id !== "delivered" && (
+                          <div className="absolute left-[21px] top-11 h-12 w-0.5 border-l-2 border-dashed border-zinc-300 z-0" />
                         )}
                         
                         <div className={cn(
-                          "relative z-10 flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 bg-white transition-colors duration-200",
-                          isActive ? "border-primary text-primary" : "border-zinc-200 text-zinc-300",
-                          isLastActive && "bg-primary text-primary-foreground border-primary"
+                          "relative z-10 flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 bg-white transition-colors duration-200 border-primary",
+                          isLastStep ? "bg-primary text-primary-foreground" : "text-primary"
                         )}>
-                          {isActive && !isLastActive ? (
+                          {!isLastStep ? (
                             <CheckCircle2 className="h-6 w-6" />
                           ) : (
                             <Icon className="h-5 w-5" />
                           )}
                         </div>
-                        <div className="flex flex-col justify-center pt-1">
-                          <h4 className={cn(
-                            "text-sm font-medium",
-                            isActive ? "text-foreground" : "text-muted-foreground"
-                          )}>{step.title}</h4>
+                        <div className="flex flex-col justify-center pt-1 pb-2">
+                          <h4 className="text-sm font-medium text-foreground">{step.title}</h4>
                           <p className="text-xs text-muted-foreground mt-1">
                             {step.description}
                           </p>

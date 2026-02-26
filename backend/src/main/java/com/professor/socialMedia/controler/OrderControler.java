@@ -23,125 +23,114 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/orders")
 public class OrderControler {
 
-    @Autowired
-    private OrderService orderService;
+        @Autowired
+        private OrderService orderService;
 
-    @Autowired
-    private OrderMapper orderMapper;
+        @Autowired
+        private OrderMapper orderMapper;
 
-    @Autowired
-    private UserService userService;
+        @Autowired
+        private UserService userService;
 
-    /**
-     * Create order from current user's cart
-     */
-    @PostMapping
-    public ResponseEntity<ApiResponse<OrderDto>> createOrder(@AuthenticationPrincipal CustomUserDetail user){
-        User userEntity = userService.findByEmail(user.getUsername()).orElseThrow(
-                ()-> new RuntimeException("User not found!")
-        );
-        Order order = orderService.createFromCart(userEntity.getId());
-        OrderDto orderDto = orderMapper.mapOrder(order);
-        return ResponseEntity.status(HttpStatus.CREATED).body(
-                ApiResponse.success("Order created successfully", orderDto)
-        );
-    }
-
-    /**
-     * Get all orders for current authenticated user
-     */
-    @GetMapping
-    public ResponseEntity<ApiResponse<List<OrderDto>>> getOrders(
-            @AuthenticationPrincipal CustomUserDetail user)
-    {
-        User userEntity = userService.findByEmail(user.getUsername()).orElseThrow(
-                ()-> new RuntimeException("User not found!")
-        );
-        List<Order> all =  orderService.findByUserId(userEntity.getId());
-        List<OrderDto> order = all.stream()
-                .map(orderMapper::mapOrder)
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(ApiResponse.success("User orders retrieved successfully", order));
-    }
-
-    /**
-     * Get specific order by ID (user can only see their own orders)
-     */
-    @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<OrderDto>> getOrder(
-            @AuthenticationPrincipal CustomUserDetail user,
-            @PathVariable String id)
-    {
-        User userEntity = userService.findByEmail(user.getUsername()).orElseThrow(
-                ()-> new RuntimeException("User not found!")
-        );
-        Order order = orderService.findById(new ObjectId(id));
-        if(order == null){
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-                    ApiResponse.error("Order not found")
-            );
-        }
-        // Check if the order belongs to the current user
-        if (!order.getUserId().equals(userEntity.getId())) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
-                    ApiResponse.error("You don't have permission to view this order")
-            );
+        /**
+         * Create order from current user's cart
+         */
+        @PostMapping
+        public ResponseEntity<ApiResponse<OrderDto>> createOrder(@AuthenticationPrincipal CustomUserDetail user) {
+                User userEntity = userService.findByEmail(user.getUsername()).orElseThrow(
+                                () -> new RuntimeException("User not found!"));
+                Order order = orderService.createFromCart(userEntity.getId());
+                OrderDto orderDto = orderMapper.mapOrder(order);
+                return ResponseEntity.status(HttpStatus.CREATED).body(
+                                ApiResponse.success("Order created successfully", orderDto));
         }
 
-        OrderDto orderDto = orderMapper.mapOrder(order);
-        return ResponseEntity.ok(ApiResponse.success("Order retrieved successfully", orderDto));
-    }
-
-    /**
-     * Get all orders for a specific user - ADMIN only
-     */
-    @GetMapping("/admin/user/{userId}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<List<OrderDto>>> getAdminUserOrders(
-            @AuthenticationPrincipal CustomUserDetail user,
-            @PathVariable String userId
-    ){
-        List<Order> orders = orderService.findByUserId(new ObjectId(userId));
-        List<OrderDto> orderDtos = orders.stream().map(orderMapper::mapOrder).collect(Collectors.toList());
-        return ResponseEntity.ok(ApiResponse.success("User orders retrieved successfully", orderDtos));
-    }
-
-    /**
-     * Get all orders - ADMIN only
-     */
-//    @GetMapping("/admin/all")
-//    public ResponseEntity<ApiResponse<List<OrderDto>>> getAllUserOrders(
-//            @AuthenticationPrincipal CustomUserDetail user
-//    )
-
-
-
-    /**
-     * Cancel an order by ID
-     */
-    @PutMapping("/{id}/cancel")
-    public ResponseEntity<ApiResponse<OrderDto>> cancelOrder(
-            @AuthenticationPrincipal CustomUserDetail user,
-            @PathVariable String id)
-    {
-        User userEntity = userService.findByEmail(user.getUsername()).orElseThrow(
-                ()-> new RuntimeException("User not found!")
-        );
-        Order order = orderService.findById(new ObjectId(id));
-        if(order == null){
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-                    ApiResponse.error("Order not found")
-            );
-        }
-        // Check if the order belongs to the current user
-        if (!order.getUserId().equals(userEntity.getId())) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
-                    ApiResponse.error("You don't have permission to view this order")
-            );
+        /**
+         * Get all orders for current authenticated user
+         */
+        @GetMapping
+        public ResponseEntity<ApiResponse<List<OrderDto>>> getOrders(
+                        @AuthenticationPrincipal CustomUserDetail user) {
+                User userEntity = userService.findByEmail(user.getUsername()).orElseThrow(
+                                () -> new RuntimeException("User not found!"));
+                List<Order> all = orderService.findByUserId(userEntity.getId());
+                List<OrderDto> order = all.stream()
+                                .map(orderMapper::mapOrder)
+                                .collect(Collectors.toList());
+                return ResponseEntity.ok(ApiResponse.success("User orders retrieved successfully", order));
         }
 
-        Order cancelledOrder = orderService.cancelOrder(order);
-        OrderDto orderDto = orderMapper.mapOrder(cancelledOrder);
-        return ResponseEntity.ok(ApiResponse.success("Order cancelled successfully", orderDto));
-    }
+        /**
+         * Get specific order by ID (user can only see their own orders)
+         */
+        @GetMapping("/{id}")
+        public ResponseEntity<ApiResponse<OrderDto>> getOrder(
+                        @AuthenticationPrincipal CustomUserDetail user,
+                        @PathVariable String id) {
+                User userEntity = userService.findByEmail(user.getUsername()).orElseThrow(
+                                () -> new RuntimeException("User not found!"));
+                Order order = orderService.findById(new ObjectId(id));
+                if (order == null) {
+                        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                                        ApiResponse.error("Order not found"));
+                }
+                // Check if the order belongs to the current user or if the user is an ADMIN
+                if (!order.getUserId().equals(userEntity.getId()) && !userEntity.getRole().name().equals("ADMIN")) {
+                        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
+                                        ApiResponse.error("You don't have permission to view this order"));
+                }
+
+                OrderDto orderDto = orderMapper.mapOrder(order);
+                return ResponseEntity.ok(ApiResponse.success("Order retrieved successfully", orderDto));
+        }
+
+        /**
+         * Get all orders for a specific user - ADMIN only
+         */
+        @GetMapping("/admin/user/{userId}")
+        @PreAuthorize("hasRole('ADMIN')")
+        public ResponseEntity<ApiResponse<List<OrderDto>>> getAdminUserOrders(
+                        @AuthenticationPrincipal CustomUserDetail user,
+                        @PathVariable String userId) {
+                List<Order> orders = orderService.findByUserId(new ObjectId(userId));
+                List<OrderDto> orderDtos = orders.stream().map(orderMapper::mapOrder).collect(Collectors.toList());
+                return ResponseEntity.ok(ApiResponse.success("User orders retrieved successfully", orderDtos));
+        }
+
+        /**
+         * Get all orders - ADMIN only
+         */
+        @GetMapping("/admin/all")
+        @PreAuthorize("hasRole('ADMIN')")
+        public ResponseEntity<ApiResponse<List<OrderDto>>> getAllUserOrders(
+                        @AuthenticationPrincipal CustomUserDetail user) {
+                List<Order> orders = orderService.findAll();
+                List<OrderDto> orderDtos = orders.stream().map(orderMapper::mapOrder).collect(Collectors.toList());
+                return ResponseEntity.ok(ApiResponse.success("All orders retrieved successfully", orderDtos));
+        }
+
+        /**
+         * Cancel an order by ID
+         */
+        @PutMapping("/{id}/cancel")
+        public ResponseEntity<ApiResponse<OrderDto>> cancelOrder(
+                        @AuthenticationPrincipal CustomUserDetail user,
+                        @PathVariable String id) {
+                User userEntity = userService.findByEmail(user.getUsername()).orElseThrow(
+                                () -> new RuntimeException("User not found!"));
+                Order order = orderService.findById(new ObjectId(id));
+                if (order == null) {
+                        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                                        ApiResponse.error("Order not found"));
+                }
+                // Check if the order belongs to the current user
+                if (!order.getUserId().equals(userEntity.getId())) {
+                        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
+                                        ApiResponse.error("You don't have permission to view this order"));
+                }
+
+                Order cancelledOrder = orderService.cancelOrder(order);
+                OrderDto orderDto = orderMapper.mapOrder(cancelledOrder);
+                return ResponseEntity.ok(ApiResponse.success("Order cancelled successfully", orderDto));
+        }
 }
