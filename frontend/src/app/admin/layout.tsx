@@ -12,7 +12,8 @@ import {
   Menu,
   ChevronRight,
   User as UserIcon,
-  X
+  X,
+  Users
 } from "lucide-react";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -52,6 +53,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const navItems = [
     { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
+    { name: "All Users", href: "/admin/users", icon: Users },
     { name: "Products", href: "/admin/products", icon: Package },
     { name: "Orders", href: "/admin/orders", icon: ShoppingCart },
     { name: "Categories", href: "/admin/categories", icon: LayoutDashboard }, // using LayoutDashboard or similar icon
