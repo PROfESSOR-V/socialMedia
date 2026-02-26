@@ -50,7 +50,7 @@ export const api = {
       return data?.data || data || null;
     },
     cancel: async (id: string) => {
-      const { data } = await apiClient.put(`/api/orders/${id}/cancel`);
+      const { data } = await apiClient.post(`/api/orders/${id}/cancel`);
       return data?.data || data || null;
     }
   },
