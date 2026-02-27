@@ -23,6 +23,7 @@ public class ProductMapper {
         dto.setHowToUse(product.getHowToUse());
         dto.setCategoryId(product.getCategoryId() != null ? product.getCategoryId().toString() : null);
         dto.setIsActive(product.getActive());
+        dto.setVariants(product.getVariants());
         return dto;
     }
 }

@@ -22,6 +22,8 @@ public class OrderService {
     private CartRepository cartRepository;
     @Autowired
     private ProductRepository productRepository;
+    @Autowired
+    private ShipmozoShipmentService shipmozoShipmentService;
 
     public Order createFromCart(ObjectId userId) {
         Cart cart = cartRepository.findByUserIdAndStatus(userId, CartStatus.ACTIVE)
@@ -45,16 +47,47 @@ public class OrderService {
                 throw new IllegalArgumentException("Invalid quantity");
             }
 
-            if (p.getStock() < ci.getQuantity()) {
+            double effectivePrice = p.getPrice() != null ? p.getPrice() : 0.0;
+            int effectiveStock = p.getStock();
+            boolean isVariantSelected = ci.getVariantName() != null && !ci.getVariantName().isEmpty()
+                    && p.getVariants() != null;
+
+            if (isVariantSelected) {
+                var variantOpt = p.getVariants().stream()
+                        .filter(v -> v.getName().equals(ci.getVariantName()))
+                        .findFirst();
+                if (variantOpt.isPresent()) {
+                    effectivePrice = variantOpt.get().getPrice();
+                    effectiveStock = variantOpt.get().getStock();
+                } else {
+                    throw new RuntimeException("Selected variant does not exist for product " + p.getId());
+                }
+            }
+
+            if (effectiveStock < ci.getQuantity()) {
                 throw new RuntimeException("Not enough stock available for " + p.getId());
             }
+
+            // Deduct stock here
+            if (isVariantSelected) {
+                for (ProductVariant variant : p.getVariants()) {
+                    if (variant.getName().equals(ci.getVariantName())) {
+                        variant.setStock(variant.getStock() - ci.getQuantity());
+                        break;
+                    }
+                }
+            } else {
+                p.setStock(p.getStock() - ci.getQuantity());
+            }
+            productRepository.save(p);
 
             OrderItem oi = new OrderItem();
             oi.setProductId(p.getId());
             oi.setQuantity(ci.getQuantity());
-            oi.setPriceSnapshot(p.getPrice());
+            oi.setPriceSnapshot(effectivePrice);
+            oi.setVariantName(ci.getVariantName());
             orderItems.add(oi);
-            totalPrice += (p.getPrice() * ci.getQuantity());
+            totalPrice += (effectivePrice * ci.getQuantity());
         }
         Order order = new Order();
         order.setUserId(userId);
@@ -107,12 +140,43 @@ public class OrderService {
             // Restore inventory immediately
             for (OrderItem item : order.getItems()) {
                 productRepository.findById(item.getProductId()).ifPresent(p -> {
-                    p.setStock(p.getStock() + item.getQuantity());
+                    boolean isVariantSelected = item.getVariantName() != null && !item.getVariantName().isEmpty()
+                            && p.getVariants() != null;
+                    if (isVariantSelected) {
+                        for (ProductVariant variant : p.getVariants()) {
+                            if (variant.getName().equals(item.getVariantName())) {
+                                variant.setStock(variant.getStock() + item.getQuantity());
+                                break;
+                            }
+                        }
+                    } else {
+                        p.setStock(p.getStock() + item.getQuantity());
+                    }
                     productRepository.save(p);
                 });
             }
         }
 
         return orderRepository.save(order);
+    }
+
+    public Order retryShipment(ObjectId orderId) {
+        Order order = findById(orderId);
+
+        if (order.getStatus() != OrderStatus.PAID) {
+            throw new RuntimeException("Cannot retry shipment. Order is not PAID.");
+        }
+
+        if (order.getAwb() != null && !order.getAwb().isEmpty()) {
+            throw new RuntimeException("Cannot retry shipment. Order already has an AWB assigned.");
+        }
+
+        try {
+            shipmozoShipmentService.createShipment(order);
+            // Re-fetch since createShipment modifies and saves the order
+            return findById(orderId);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to retry Shipmozo shipment: " + e.getMessage());
+        }
     }
 }

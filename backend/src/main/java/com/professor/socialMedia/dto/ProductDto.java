@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import com.professor.socialMedia.entity.ProductVariant;
+
 import java.util.List;
 
 @Data
@@ -26,4 +28,5 @@ public class ProductDto {
     private String howToUse;
     private String categoryId;
     private Boolean isActive;
+    private List<ProductVariant> variants;
 }

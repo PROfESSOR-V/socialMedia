@@ -75,7 +75,9 @@ export default function CartDrawer() {
                         </div>
                         <div className="flex flex-1 flex-col justify-between">
                           <div>
-                            <h3 className="font-medium text-primary">{item.name}</h3>
+                            <h3 className="font-medium text-primary">
+                              {item.name} {item.variantName && <span className="text-muted-foreground font-normal text-sm block">{item.variantName}</span>}
+                            </h3>
                             <p className="text-sm text-muted-foreground">
                               {formatPrice(item.price)}
                             </p>

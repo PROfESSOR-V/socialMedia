@@ -1,9 +1,8 @@
 package com.professor.socialMedia.controler;
 
-
-import com.professor.socialMedia.dto.CreateProductRequest;
+import com.professor.socialMedia.dto.request.CreateProductRequest;
 import com.professor.socialMedia.dto.ProductDto;
-import com.professor.socialMedia.dto.UpdateProductRequest;
+import com.professor.socialMedia.dto.request.UpdateProductRequest;
 import com.professor.socialMedia.dto.mapper.ProductMapper;
 import com.professor.socialMedia.dto.response.ApiResponse;
 import com.professor.socialMedia.entity.Product;
@@ -62,11 +61,9 @@ public class ProductControler {
         return productService.findById(id)
                 .map(product -> ResponseEntity.ok(
                         ApiResponse.success("Product retrieved successfully",
-                                productMapper.mapProduct(product))
-                ))
+                                productMapper.mapProduct(product))))
                 .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-                        ApiResponse.error("Product not found")
-                ));
+                        ApiResponse.error("Product not found")));
     }
 
     /**
@@ -91,13 +88,13 @@ public class ProductControler {
         product.setIngredients(request.getIngredients());
         product.setHowToUse(request.getHowToUse());
         product.setCategoryId(new ObjectId(request.getCategoryId()));
+        product.setVariants(request.getVariants());
 
         Product created = productService.create(product);
         ProductDto productDto = productMapper.mapProduct(created);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(
-                ApiResponse.success("Product created successfully", productDto)
-        );
+                ApiResponse.success("Product created successfully", productDto));
     }
 
     /**
@@ -112,8 +109,7 @@ public class ProductControler {
         Product product = productService.findById(id).orElse(null);
         if (product == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-                    ApiResponse.error("Product not found")
-            );
+                    ApiResponse.error("Product not found"));
         }
 
         // Update only provided fields
@@ -154,6 +150,9 @@ public class ProductControler {
         if (request.getCategoryId() != null) {
             product.setCategoryId(new ObjectId(request.getCategoryId()));
         }
+        if (request.getVariants() != null) {
+            product.setVariants(request.getVariants());
+        }
 
         Product updated = productService.update(product);
         ProductDto productDto = productMapper.mapProduct(updated);
@@ -170,8 +169,7 @@ public class ProductControler {
         Product product = productService.findById(id).orElse(null);
         if (product == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-                    ApiResponse.error("Product not found")
-            );
+                    ApiResponse.error("Product not found"));
         }
         productService.disable(id);
         return ResponseEntity.ok(ApiResponse.success("Product status toggled successfully", null));
@@ -186,26 +184,10 @@ public class ProductControler {
         Product product = productService.findById(id).orElse(null);
         if (product == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-                    ApiResponse.error("Product not found")
-            );
+                    ApiResponse.error("Product not found"));
         }
         productService.delete(id);
         return ResponseEntity.ok(ApiResponse.success("Product deleted successfully", null));
     }
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

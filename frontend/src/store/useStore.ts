@@ -9,6 +9,7 @@ interface CartItem {
   image: string;
   quantity: number;
   size?: string;
+  variantName?: string;
 }
 
 interface User {
@@ -116,7 +117,7 @@ export const useStore = create<StoreState>()(
 
         // Sync with backend if logged in
         try {
-          await api.cart.add(item.id, item.quantity);
+          await api.cart.add(item.id, item.quantity, item.variantName);
         } catch (error) {
           console.error("Failed to sync cart add", error);
         }

@@ -24,6 +24,8 @@ public class Product {
     private String hoverImage;
     private List<String> images;
 
+    private List<ProductVariant> variants;
+
     // Rich Text Fields
     private String benefits;
     private String ingredients;

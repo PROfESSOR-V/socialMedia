@@ -16,8 +16,8 @@ export const api = {
       const { data } = await apiClient.get("/api/cart");
       return data?.data || data || null;
     },
-    add: async (productId: string, quantity: number) => {
-      const { data } = await apiClient.post("/api/cart/items", { productId, quantity });
+    add: async (productId: string, quantity: number, variantName?: string) => {
+      const { data } = await apiClient.post("/api/cart/items", { productId, quantity, variantName });
       return data?.data || data || null;
     },
     update: async (productId: string, quantity: number) => {

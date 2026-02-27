@@ -1,8 +1,10 @@
-package com.professor.socialMedia.dto;
+package com.professor.socialMedia.dto.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import com.professor.socialMedia.entity.ProductVariant;
 
 import java.util.List;
 
@@ -23,4 +25,5 @@ public class UpdateProductRequest {
     private String ingredients;
     private String howToUse;
     private String categoryId;
+    private List<ProductVariant> variants;
 }

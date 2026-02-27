@@ -1,4 +1,4 @@
-package com.professor.socialMedia.dto;
+package com.professor.socialMedia.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import com.professor.socialMedia.entity.ProductVariant;
 import java.util.List;
 
 @Data
@@ -40,4 +41,6 @@ public class CreateProductRequest {
 
     @NotBlank(message = "Category ID is required")
     private String categoryId;
+
+    private List<ProductVariant> variants;
 }

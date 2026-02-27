@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Save, Image as ImageIcon, Loader2 } from "lucide-react";
+import { ArrowLeft, Save, Plus, Trash2, Image as ImageIcon, Loader2 } from "lucide-react";
 import apiClient from "@/lib/apiClient";
 import axios from "axios";
 
@@ -23,6 +23,7 @@ export default function AddProductPage() {
     howToUse: "",
   });
 
+  const [variants, setVariants] = useState([{ name: "", price: "", stock: "" }]);
   const [mainImageFile, setMainImageFile] = useState<File | null>(null);
   const [hoverImageFile, setHoverImageFile] = useState<File | null>(null);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
@@ -45,6 +46,22 @@ export default function AddProductPage() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleVariantChange = (index: number, field: string, value: string) => {
+    const newVariants = [...variants];
+    newVariants[index] = { ...newVariants[index], [field]: value };
+    setVariants(newVariants);
+  };
+
+  const addVariant = () => {
+    setVariants([...variants, { name: "", price: "", stock: "" }]);
+  };
+
+  const removeVariant = (index: number) => {
+    if (variants.length > 1) {
+      setVariants(variants.filter((_, i) => i !== index));
+    }
   };
 
   const uploadImage = async (file: File) => {
@@ -74,6 +91,14 @@ export default function AddProductPage() {
         imageUrls = await Promise.all(imageFiles.map(file => uploadImage(file)));
       }
 
+      const parsedVariants = variants
+        .filter(v => v.name.trim() !== '')
+        .map(v => ({
+          name: v.name,
+          price: parseFloat(v.price) || 0,
+          stock: parseInt(v.stock) || 0
+        }));
+
       const payload = {
         name: formData.name,
         description: formData.description,
@@ -87,6 +112,7 @@ export default function AddProductPage() {
         benefits: formData.benefits,
         ingredients: formData.ingredients,
         howToUse: formData.howToUse,
+        variants: parsedVariants.length > 0 ? parsedVariants : null
       };
 
       await apiClient.post("/api/products/add", payload);
@@ -261,6 +287,71 @@ export default function AddProductPage() {
                     className="w-full px-3 py-2 border border-zinc-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-black file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-zinc-50 file:text-black hover:file:bg-zinc-100"
                   />
                </div>
+            </div>
+          </div>
+
+          <div className="bg-white p-6 rounded-2xl border border-zinc-200 shadow-sm space-y-4">
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-base font-semibold text-zinc-900">Product Variants</h2>
+              <button 
+                type="button" 
+                onClick={addVariant}
+                className="text-xs flex items-center gap-1 bg-zinc-100 hover:bg-zinc-200 text-zinc-800 px-3 py-1.5 rounded-lg transition-colors font-medium"
+              >
+                <Plus className="w-3.5 h-3.5" /> Add Variant
+              </button>
+            </div>
+            <p className="text-xs text-zinc-500 mb-4">Add different sizes, volumes, or types (e.g. 50ml, 100ml). If a user selects a variant, its price and stock will be used instead of the base product values.</p>
+            
+            <div className="space-y-4">
+              {variants.map((variant, index) => (
+                <div key={index} className="flex gap-3 items-start p-3 border border-zinc-100 bg-zinc-50/50 rounded-xl relative">
+                  <div className="flex-1 space-y-3">
+                    <div>
+                      <label className="block text-xs font-medium text-zinc-700 mb-1">Variant Name (e.g., Size)</label>
+                      <input
+                        type="text"
+                        value={variant.name}
+                        onChange={(e) => handleVariantChange(index, "name", e.target.value)}
+                        placeholder="e.g. 50ml"
+                        className="w-full px-2.5 py-1.5 border border-zinc-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-black"
+                      />
+                    </div>
+                    <div className="flex gap-3">
+                      <div className="flex-1">
+                        <label className="block text-xs font-medium text-zinc-700 mb-1">Price</label>
+                        <input
+                          type="number"
+                          value={variant.price}
+                          onChange={(e) => handleVariantChange(index, "price", e.target.value)}
+                          placeholder="Price"
+                          className="w-full px-2.5 py-1.5 border border-zinc-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-black"
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <label className="block text-xs font-medium text-zinc-700 mb-1">Stock</label>
+                        <input
+                          type="number"
+                          value={variant.stock}
+                          onChange={(e) => handleVariantChange(index, "stock", e.target.value)}
+                          placeholder="Stock qty"
+                          className="w-full px-2.5 py-1.5 border border-zinc-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-black"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  {variants.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => removeVariant(index)}
+                      className="mt-6 p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                      title="Remove Variant"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+              ))}
             </div>
           </div>
         </div>

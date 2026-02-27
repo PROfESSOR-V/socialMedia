@@ -29,6 +29,11 @@ public class OrderDto {
     private Instant refundCompletedAt;
     private String refundReferenceId;
 
+    // Customer details
+    private String userName;
+    private String userEmail;
+    private String userPhone;
+
     private Instant createdAt;
     private Instant updatedAt;
 }

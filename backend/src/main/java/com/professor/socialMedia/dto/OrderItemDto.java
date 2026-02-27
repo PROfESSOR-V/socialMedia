@@ -12,4 +12,5 @@ public class OrderItemDto {
     private String productName;
     private Integer quantity;
     private Double price;
+    private String variantName;
 }

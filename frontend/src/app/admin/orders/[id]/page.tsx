@@ -24,6 +24,9 @@ interface Order {
   trackingStatus?: string;
   createdAt: string;
   items: OrderItem[];
+  userName?: string;
+  userEmail?: string;
+  userPhone?: string;
 }
 
 interface UserData {
@@ -41,8 +44,8 @@ export default function AdminOrderDetailsPage() {
   const router = useRouter();
 
   const [order, setOrder] = useState<Order | null>(null);
-  const [customer, setCustomer] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [retrying, setRetrying] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const fetchOrderAndCustomer = async () => {
@@ -71,26 +74,38 @@ export default function AdminOrderDetailsPage() {
       const fetchedOrder = orderData.data;
       setOrder(fetchedOrder);
 
-      // 2. Fetch Customer Details
-      if (fetchedOrder.userId) {
-         const uIdStr = String((fetchedOrder.userId as any)?.timestamp || fetchedOrder.userId);
-         const userRes = await fetch(`${baseUrl}/api/user/${uIdStr}`, {
-           headers: { Authorization: `Bearer ${token}` }
-         });
-
-         if (userRes.ok) {
-            const userData = await userRes.json();
-            if (userData.success) {
-               setCustomer(userData.data);
-            }
-         }
-      }
-
     } catch (err: any) {
       console.error("Error fetching admin order:", err);
       setError(err.message || "An unexpected error occurred.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleRetryShipment = async () => {
+    if (!confirm("Are you sure you want to manually trigger the shipment push to Shipmozo?")) return;
+
+    try {
+      setRetrying(true);
+      setError(null);
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || "https://socialmedia-0qzd.onrender.com";
+      const res = await fetch(`${baseUrl}/api/orders/${id}/ship/retry`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.message || "Failed to retry shipment");
+      }
+
+      await fetchOrderAndCustomer(); // Refresh the data
+      alert("Shipment pushed successfully!");
+    } catch (err: any) {
+      console.error("Retry Shipment Error:", err);
+      alert(err.message || "An error occurred while retrying shipment");
+    } finally {
+      setRetrying(false);
     }
   };
 
@@ -182,9 +197,9 @@ export default function AdminOrderDetailsPage() {
     }
   }
 
-  const customerName = customer ? ((customer.name && customer.name !== "Unknown") ? customer.name : (customer.addresses && customer.addresses.length > 0 ? customer.addresses[0].name : "Unknown User")) : "Loading...";
-  const customerEmail = customer?.email || "N/A";
-  const customerPhone = customer?.mobileNumber || "Not Provided";
+  const customerName = order.userName || "Unknown User";
+  const customerEmail = order.userEmail || "N/A";
+  const customerPhone = order.userPhone || "Not Provided";
 
   return (
     <div className="space-y-6 max-w-6xl">
@@ -254,6 +269,31 @@ export default function AdminOrderDetailsPage() {
                 {order.status}
               </span>
             </div>
+
+            {order.status === 'PAID' && !order.awb && (
+              <div className="mb-6 rounded-xl bg-yellow-50 p-4 border border-yellow-200 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between shadow-sm">
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="h-5 w-5 text-yellow-600 shrink-0 mt-0.5" />
+                  <div>
+                    <h3 className="text-sm font-semibold text-yellow-800">Shipment Not Pushed</h3>
+                    <p className="mt-1 text-xs text-yellow-700">
+                      The automated push to Shipmozo seems to have failed. AWB is missing.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={handleRetryShipment}
+                  disabled={retrying}
+                  className="shrink-0 inline-flex items-center gap-2 bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg text-xs font-semibold uppercase tracking-wider transition-colors disabled:opacity-50"
+                >
+                  {retrying ? (
+                    <><RefreshCw className="w-3.5 h-3.5 animate-spin" /> Retrying...</>
+                  ) : (
+                    <><RefreshCw className="w-3.5 h-3.5" /> Retry Push</>
+                  )}
+                </button>
+              </div>
+            )}
 
             {order.awb && (
                <div className="mb-8 p-4 bg-zinc-50 rounded-xl border border-zinc-200 text-sm flex flex-col sm:flex-row sm:gap-6 gap-3">

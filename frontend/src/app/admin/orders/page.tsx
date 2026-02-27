@@ -16,25 +16,16 @@ interface OrderData {
   shipmentStatus?: string;
   refundReferenceId?: string;
   createdAt: string;
-}
-
-interface UserData {
-  id: string;
-  name: string;
-  email: string;
-  addresses: any[];
-}
-
-interface CombinedOrder extends OrderData {
   userName: string;
   userEmail: string;
+  userPhone?: string;
 }
 
 export default function AdminOrdersPage() {
   const { token, user, _hasHydrated } = useStore();
   const router = useRouter();
   
-  const [orders, setOrders] = useState<CombinedOrder[]>([]);
+  const [orders, setOrders] = useState<OrderData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -46,41 +37,18 @@ export default function AdminOrdersPage() {
       
       const baseUrl = process.env.NEXT_PUBLIC_API_URL || "https://socialmedia-0qzd.onrender.com";
 
-      const [ordersRes, usersRes] = await Promise.all([
-        fetch(`${baseUrl}/api/orders/admin/all`, { headers: { Authorization: `Bearer ${token}` } }),
-        fetch(`${baseUrl}/api/user`, { headers: { Authorization: `Bearer ${token}` } })
-      ]);
+      const ordersRes = await fetch(`${baseUrl}/api/orders/admin/all`, { headers: { Authorization: `Bearer ${token}` } });
 
-      if (!ordersRes.ok || !usersRes.ok) throw new Error("Failed to fetch data");
+      if (!ordersRes.ok) throw new Error("Failed to fetch data");
 
       const ordersData = await ordersRes.json();
-      const usersData = await usersRes.json();
 
-      if (ordersData.success && usersData.success) {
-        const usersMap = new Map<string, UserData>();
-        
-        usersData.data.forEach((u: UserData) => {
-          const idString = String((u.id as any)?.timestamp || u.id || "");
-          usersMap.set(idString, u);
-        });
-
-        const combined = ordersData.data.map((o: OrderData) => {
-           let userName = "Unknown User";
-           let userEmail = "N/A";
-           
-           const uIdStr = String((o.userId as any)?.timestamp || o.userId || "");
-           const u = usersMap.get(uIdStr);
-           if (u) {
-             userName = (u.name && u.name !== "Unknown") ? u.name : (u.addresses && u.addresses.length > 0 ? u.addresses[0].name : "Unknown");
-             userEmail = u.email || "N/A";
-           }
-           return { ...o, userName, userEmail };
-        });
-
+      if (ordersData.success) {
+        const orderList = ordersData.data || [];
         // Sort by newest first
-        combined.sort((a: CombinedOrder, b: CombinedOrder) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        orderList.sort((a: OrderData, b: OrderData) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
-        setOrders(combined);
+        setOrders(orderList);
       } else {
         throw new Error("Failed to parse data");
       }
@@ -108,8 +76,8 @@ export default function AdminOrdersPage() {
     const idString = String((o.id as any)?.timestamp || o.id || "");
     return (
       idString.toLowerCase().includes(query) ||
-      o.userName.toLowerCase().includes(query) ||
-      o.userEmail.toLowerCase().includes(query) ||
+      (o.userName && o.userName.toLowerCase().includes(query)) ||
+      (o.userEmail && o.userEmail.toLowerCase().includes(query)) ||
       o.status.toLowerCase().includes(query) ||
       (o.paymentStatus && o.paymentStatus.toLowerCase().includes(query))
     );
@@ -131,7 +99,7 @@ export default function AdminOrdersPage() {
     }
   };
 
-  const getDisplayStatus = (order: CombinedOrder) => {
+  const getDisplayStatus = (order: OrderData) => {
     if (order.paymentStatus === "REFUND_INITIATED") return "REFUND PENDING";
     if (order.paymentStatus === "REFUNDED") return "REFUNDED";
     return order.status;
@@ -220,8 +188,8 @@ export default function AdminOrdersPage() {
                         ...{idString.slice(-8)}
                       </td>
                       <td className="px-6 py-4">
-                        <p className="font-medium text-zinc-900">{order.userName}</p>
-                        <p className="text-xs text-zinc-500">{order.userEmail}</p>
+                        <p className="font-medium text-zinc-900">{order.userName || "Unknown"}</p>
+                        <p className="text-xs text-zinc-500">{order.userEmail || "N/A"}</p>
                       </td>
                       <td className="px-6 py-4 text-zinc-500">
                         {new Date(order.createdAt).toLocaleDateString()}

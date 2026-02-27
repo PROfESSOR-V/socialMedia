@@ -3,7 +3,6 @@ package com.professor.socialMedia.entity;
 import lombok.Data;
 import org.bson.types.ObjectId;
 
-
 @Data
 public class OrderItem {
 
@@ -11,5 +10,6 @@ public class OrderItem {
     private int quantity;
 
     private double priceSnapshot;
+    private String variantName;
 
 }

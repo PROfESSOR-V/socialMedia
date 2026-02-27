@@ -248,7 +248,9 @@ export default function CheckoutPage() {
                   </span>
                 </div>
                 <div className="flex flex-1 flex-col justify-center">
-                  <h3 className="text-sm font-semibold text-zinc-900 leading-tight mb-1">{item.name}</h3>
+                  <h3 className="text-sm font-semibold text-zinc-900 leading-tight mb-1">
+                    {item.name} {item.variantName && <span className="text-zinc-500 font-normal text-xs ml-1">({item.variantName})</span>}
+                  </h3>
                   <p className="text-xs text-zinc-500 mb-2">
                     {formatPrice(item.price)} each
                   </p>

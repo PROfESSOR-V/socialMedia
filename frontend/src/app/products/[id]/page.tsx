@@ -15,14 +15,18 @@ export default function ProductPage({ params }: { params: { id: string } }) {
   const [loading, setLoading] = useState(true);
   const { addToCart, token, setAuthModalOpen } = useStore();
   const [quantity, setQuantity] = useState(1);
-  const [selectedSize, setSelectedSize] = useState("50ml");
+  const [selectedVariant, setSelectedVariant] = useState<any>(null);
   const router = useRouter();
 
   useEffect(() => {
     const fetchProduct = async () => {
       try {
         const { data } = await apiClient.get(`/api/products/${params.id}`);
-        setProduct(data.data || data);
+        const prod = data.data || data;
+        setProduct(prod);
+        if (prod.variants && prod.variants.length > 0) {
+          setSelectedVariant(prod.variants[0]);
+        }
       } catch (err) {
         console.error("Failed to fetch product", err);
       } finally {
@@ -53,11 +57,16 @@ export default function ProductPage({ params }: { params: { id: string } }) {
     addToCart({ 
        id: product.id, 
        name: product.name, 
-       price: product.price, 
+       price: displayPrice, 
        image: product.mainImage || "https://placehold.co/400x400/e8e8e1/a0a096?text=Image", 
-       quantity 
+       quantity,
+       variantName: selectedVariant ? selectedVariant.name : undefined 
     });
   };
+
+  const displayPrice = selectedVariant && selectedVariant.price ? selectedVariant.price : product.price;
+  const displayStock = selectedVariant && selectedVariant.stock !== undefined ? selectedVariant.stock : (product.stock || product.quantity || 0);
+  const isOutOfStock = displayStock < quantity;
 
   return (
     <div className="container mx-auto px-4 py-12 pt-32 sm:px-6 lg:px-8 bg-[#f9f9f9] min-h-screen">
@@ -108,7 +117,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
           className="flex flex-col"
         >
           <div className="mb-2 text-2xl font-bold text-zinc-900">
-             {formatPrice(product.price)}
+             {formatPrice(displayPrice)}
           </div>
 
           <h1 className="mb-4 font-serif text-4xl lg:text-5xl font-medium text-zinc-900 leading-tight">
@@ -120,24 +129,26 @@ export default function ProductPage({ params }: { params: { id: string } }) {
           </p>
 
           {/* Type / Size Selection */}
+          {product.variants && product.variants.length > 0 && (
           <div className="mb-8">
-            <h3 className="text-sm font-semibold uppercase tracking-wide mb-3 text-zinc-900">Size</h3>
+            <h3 className="text-sm font-semibold uppercase tracking-wide mb-3 text-zinc-900">Select Variant</h3>
             <div className="flex flex-wrap gap-3">
-                {["50ml", "100ml", "150ml"].map((size) => (
+                {product.variants.map((variant: any) => (
                     <button
-                        key={size}
-                        onClick={() => setSelectedSize(size)}
+                        key={variant.name}
+                        onClick={() => setSelectedVariant(variant)}
                         className={`px-6 py-2 rounded-md text-sm font-medium transition-all ${
-                            selectedSize === size
+                            selectedVariant?.name === variant.name
                                 ? "bg-zinc-900 text-white shadow-md"
                                 : "bg-zinc-200 text-zinc-700 hover:bg-zinc-300"
-                        }`}
+                        } ${variant.stock <= 0 ? "opacity-50" : ""}`}
                     >
-                        {size}
+                        {variant.name}
                     </button>
                 ))}
             </div>
           </div>
+          )}
 
           {/* Quantity & Add to Cart */}
           <div className="mb-8 p-6 bg-white rounded-2xl shadow-sm border border-zinc-100">
@@ -162,10 +173,11 @@ export default function ProductPage({ params }: { params: { id: string } }) {
              
              <Button 
                 size="lg" 
-                className="w-full text-base h-14 bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl shadow-lg hover:shadow-xl transition-all uppercase tracking-widest font-semibold" 
+                disabled={isOutOfStock}
+                className="w-full text-base h-14 bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl shadow-lg hover:shadow-xl transition-all uppercase tracking-widest font-semibold disabled:bg-zinc-300 disabled:text-zinc-500 disabled:shadow-none" 
                 onClick={handleAddToCart}
              >
-               Add to Cart — {formatPrice(product.price * quantity)}
+               {isOutOfStock ? "Out of Stock" : `Add to Cart — ${formatPrice(displayPrice * quantity)}`}
              </Button>
              
              <div className="mt-4 flex items-center gap-2 text-sm text-zinc-500 justify-center">

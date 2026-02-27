@@ -138,4 +138,22 @@ public class OrderControler {
                                         ApiResponse.error(e.getMessage()));
                 }
         }
+
+        /**
+         * Retry pushing shipment to Shipmozo - ADMIN only
+         */
+        @PostMapping("/{id}/ship/retry")
+        @PreAuthorize("hasRole('ADMIN')")
+        public ResponseEntity<?> retryShipment(
+                        @AuthenticationPrincipal CustomUserDetail user,
+                        @PathVariable String id) {
+                try {
+                        Order updatedOrder = orderService.retryShipment(new ObjectId(id));
+                        OrderDto orderDto = orderMapper.mapOrder(updatedOrder);
+                        return ResponseEntity.ok(ApiResponse.success("Shipment push retried successfully", orderDto));
+                } catch (RuntimeException e) {
+                        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                                        ApiResponse.error(e.getMessage()));
+                }
+        }
 }
