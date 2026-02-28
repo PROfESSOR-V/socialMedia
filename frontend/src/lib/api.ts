@@ -49,8 +49,8 @@ export const api = {
       const { data } = await apiClient.get(`/api/orders/${id}`);
       return data?.data || data || null;
     },
-    cancel: async (id: string) => {
-      const { data } = await apiClient.post(`/api/orders/${id}/cancel`);
+    cancel: async (id: string, reason?: string) => {
+      const { data } = await apiClient.post(`/api/orders/${id}/cancel`, { reason });
       return data?.data || data || null;
     },
     refreshTracking: async (id: string) => {
@@ -78,6 +78,12 @@ export const api = {
         const { data } = await apiClient.put("/api/user/profile", profileData);
         return data?.data || data || null;
       }
+    }
+  },
+  feedback: {
+    submit: async (message: string) => {
+      const { data } = await apiClient.post("/api/feedback", { message });
+      return data?.data || data || null;
     }
   }
 };

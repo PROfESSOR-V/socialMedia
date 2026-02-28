@@ -129,7 +129,7 @@ public class OrderService {
                 .orElseThrow(() -> new RuntimeException("Order not found"));
     }
 
-    public Order cancelOrder(Order order) {
+    public Order cancelOrder(Order order, String reason) {
         ShipmentStatus shipmentStatus = order.getShipmentStatus();
         if (shipmentStatus == ShipmentStatus.PICKED_UP ||
                 shipmentStatus == ShipmentStatus.IN_TRANSIT ||
@@ -139,6 +139,7 @@ public class OrderService {
 
         boolean wasPaid = order.getStatus() == OrderStatus.PAID;
         order.setStatus(OrderStatus.CANCELLED);
+        order.setCancelReason(reason);
 
         if (wasPaid) {
             order.setPaymentStatus(PaymentStatus.REFUND_INITIATED);

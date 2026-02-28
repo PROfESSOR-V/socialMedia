@@ -36,6 +36,8 @@ public class Order {
     private Instant refundCompletedAt;
     private String refundReferenceId;
 
+    private String cancelReason;
+
     private Instant createdAt = Instant.now();
 
 }

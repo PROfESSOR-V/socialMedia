@@ -46,6 +46,7 @@ public class OrderMapper {
         orderDto.setRefundReferenceId(order.getRefundReferenceId());
         orderDto.setShipmozoMsg(order.getShipmozoMsg());
         orderDto.setShipmozoOrderId(order.getShipmozoOrderId());
+        orderDto.setCancelReason(order.getCancelReason());
 
         orderDto.setShipment(order.getShipment());
         orderDto.setCreatedAt(order.getCreatedAt());

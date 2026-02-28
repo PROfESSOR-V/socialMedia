@@ -33,6 +33,8 @@ public class OrderDto {
     private String userEmail;
     private String userPhone;
 
+    private String cancelReason;
+
     private Instant createdAt;
     private Instant updatedAt;
 }

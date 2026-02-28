@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { formatPrice } from "@/lib/utils";
 import { useStore } from "@/store/useStore";
-import { Minus, Plus, Leaf, Rabbit, HeartHandshake, Truck, Info, Droplets, Loader2 } from "lucide-react";
+import { Minus, Plus, Leaf, Rabbit, HeartHandshake, Truck, Info, Droplets, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import { notFound, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
@@ -16,6 +16,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
   const { addToCart, user, setAuthModalOpen } = useStore();
   const [quantity, setQuantity] = useState(1);
   const [selectedVariant, setSelectedVariant] = useState<any>(null);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const router = useRouter();
 
   useEffect(() => {
@@ -68,6 +69,24 @@ export default function ProductPage({ params }: { params: { id: string } }) {
   const displayStock = selectedVariant && selectedVariant.stock !== undefined ? selectedVariant.stock : (product.stock || product.quantity || 0);
   const isOutOfStock = displayStock < quantity;
 
+  const allImages = [
+    ...(product.mainImage ? [product.mainImage] : []),
+    ...(product.hoverImage ? [product.hoverImage] : []),
+    ...(product.images || [])
+  ];
+
+  const handleNextImage = () => {
+    if (allImages.length > 0) {
+      setCurrentImageIndex((prev) => (prev + 1) % allImages.length);
+    }
+  };
+
+  const handlePrevImage = () => {
+    if (allImages.length > 0) {
+      setCurrentImageIndex((prev) => (prev - 1 + allImages.length) % allImages.length);
+    }
+  };
+
   return (
     <div className="container mx-auto px-4 py-12 pt-32 sm:px-6 lg:px-8 bg-[#f9f9f9] min-h-screen">
       <div className="grid grid-cols-1 gap-12 lg:grid-cols-2 lg:gap-20 items-start">
@@ -76,33 +95,49 @@ export default function ProductPage({ params }: { params: { id: string } }) {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.6 }}
-            className="sticky top-24"
+            className="md:sticky md:top-24"
         >
             <div className="relative aspect-[4/5] w-full overflow-hidden rounded-2xl bg-[#e8e8e1]">
               <img
-                src={product.mainImage || "https://placehold.co/400x500/e8e8e1/a0a096?text=Image+Not+Found"}
+                src={allImages.length > 0 ? allImages[currentImageIndex] : "https://placehold.co/400x500/e8e8e1/a0a096?text=Image+Not+Found"}
                 alt={product.name}
-                className="w-full h-full object-contain p-8 md:p-12 hover:scale-105 transition-transform duration-700"
+                className="w-full h-full object-contain p-8 md:p-12 transition-all duration-700 mix-blend-multiply"
               />
-              <div className="absolute top-4 left-4 bg-white/80 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider">
+              <div className="absolute top-4 left-4 bg-white px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider z-10">
                   Best Seller
               </div>
+              
+              {/* Carousel Arrows */}
+              {allImages.length > 1 && (
+                <>
+                  <button 
+                    onClick={handlePrevImage} 
+                    className="absolute left-4 top-1/2 -translate-y-1/2 w-8 h-8 md:w-10 md:h-10 rounded bg-[#dcdcd4]/80 hover:bg-[#d0d0c8] flex items-center justify-center text-zinc-700 transition-colors z-10"
+                    aria-label="Previous image"
+                  >
+                    <ChevronLeft className="w-5 h-5" />
+                  </button>
+                  <button 
+                    onClick={handleNextImage} 
+                    className="absolute right-4 top-1/2 -translate-y-1/2 w-8 h-8 md:w-10 md:h-10 rounded bg-[#dcdcd4]/80 hover:bg-[#d0d0c8] flex items-center justify-center text-zinc-700 transition-colors z-10"
+                    aria-label="Next image"
+                  >
+                    <ChevronRight className="w-5 h-5" />
+                  </button>
+                </>
+              )}
             </div>
             
             {/* Thumbnail/Gallery Placeholder */}
-            {(product.images?.length > 0 || product.hoverImage) && (
-              <div className="mt-4 flex gap-4 overflow-x-auto pb-2">
-                   <div className="relative w-20 h-20 rounded-lg overflow-hidden border-2 border-black cursor-pointer bg-[#e8e8e1] shrink-0">
-                      <img src={product.mainImage} alt="thumb" className="w-full h-full object-contain p-2" />
-                   </div>
-                   {product.hoverImage && (
-                     <div className="relative w-20 h-20 rounded-lg overflow-hidden border border-zinc-200 cursor-pointer bg-[#e8e8e1] shrink-0">
-                        <img src={product.hoverImage} alt="thumb hover" className="w-full h-full object-contain p-2" />
-                     </div>
-                   )}
-                   {product.images?.map((imgUrl: string, idx: number) => (
-                     <div key={idx} className="relative w-20 h-20 rounded-lg overflow-hidden border border-zinc-200 cursor-pointer bg-[#e8e8e1] shrink-0">
-                        <img src={imgUrl} alt={`thumb ${idx}`} className="w-full h-full object-contain p-2" />
+            {allImages.length > 1 && (
+              <div className="mt-4 flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+                   {allImages.map((imgUrl: string, idx: number) => (
+                     <div 
+                        key={idx} 
+                        onClick={() => setCurrentImageIndex(idx)}
+                        className={`relative w-20 h-20 rounded-lg overflow-hidden border-2 cursor-pointer bg-[#e8e8e1] shrink-0 transition-colors ${currentImageIndex === idx ? 'border-black' : 'border-transparent hover:border-zinc-300'}`}
+                     >
+                        <img src={imgUrl} alt={`thumb ${idx}`} className="w-full h-full object-contain p-2 mix-blend-multiply" />
                      </div>
                    ))}
               </div>

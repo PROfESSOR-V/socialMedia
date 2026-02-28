@@ -115,8 +115,14 @@ public class OrderControler {
         @PostMapping("/{id}/cancel")
         public ResponseEntity<?> cancelOrder(
                         @AuthenticationPrincipal CustomUserDetail user,
-                        @PathVariable String id) {
+                        @PathVariable String id,
+                        @RequestBody(required = false) java.util.Map<String, String> body) {
                 try {
+                        String reason = null;
+                        if (body != null && body.containsKey("reason")) {
+                                reason = body.get("reason");
+                        }
+
                         User userEntity = userService.findByEmail(user.getUsername()).orElseThrow(
                                         () -> new RuntimeException("User not found!"));
                         Order order = orderService.findById(new ObjectId(id));
@@ -130,7 +136,7 @@ public class OrderControler {
                                                 ApiResponse.error("You don't have permission to view this order"));
                         }
 
-                        Order cancelledOrder = orderService.cancelOrder(order);
+                        Order cancelledOrder = orderService.cancelOrder(order, reason);
                         OrderDto orderDto = orderMapper.mapOrder(cancelledOrder);
                         return ResponseEntity.ok(ApiResponse.success("Order cancelled successfully", orderDto));
                 } catch (RuntimeException e) {

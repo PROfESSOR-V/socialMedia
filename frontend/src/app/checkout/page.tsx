@@ -131,15 +131,15 @@ export default function CheckoutPage() {
   return (
     <>
     <Script src="https://sdk.cashfree.com/js/v3/cashfree.js" strategy="lazyOnload" />
-    <div className="grid min-h-screen grid-cols-1 lg:grid-cols-2">
+    <div className="flex flex-col-reverse lg:grid lg:min-h-screen lg:grid-cols-2">
       {/* Left Column: Form */}
       <motion.div
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.5 }}
-        className="flex flex-col justify-center px-4 py-12 sm:px-6 lg:px-8 xl:pr-24"
+        className="flex flex-col justify-center px-4 py-8 lg:py-12 sm:px-6 lg:px-8 xl:pr-24"
       >
-        <div className="mb-8">
+        <div className="mb-6 lg:mb-8 hidden lg:block">
           <Link
             href="/products"
             className="flex items-center text-sm text-muted-foreground hover:text-primary"
@@ -149,7 +149,7 @@ export default function CheckoutPage() {
           </Link>
         </div>
 
-        <h1 className="mb-8 font-serif text-3xl font-medium text-primary">Checkout</h1>
+        <h1 className="mb-6 lg:mb-8 font-serif text-3xl font-medium text-primary hidden lg:block">Checkout</h1>
 
         <form onSubmit={handleSubmit} className="space-y-8">
           <section>
@@ -227,13 +227,25 @@ export default function CheckoutPage() {
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.5, delay: 0.2 }}
-        className="hidden bg-secondary/30 px-4 py-12 sm:px-6 lg:block lg:px-8 xl:pl-24"
+        className="bg-secondary/30 px-4 pt-24 pb-12 lg:py-12 sm:px-6 lg:px-8 xl:pl-24"
       >
-        <div className="sticky top-24">
-          <h2 className="mb-8 font-serif text-2xl font-medium text-primary">
+        <div className="lg:sticky lg:top-24">
+          {/* Added mobile "Return to shop" header block in Summary so it rests cleanly at the top above the breakdown */}
+          <div className="mb-6 block lg:hidden">
+            <Link
+              href="/products"
+              className="flex items-center text-sm text-muted-foreground hover:text-primary mb-6"
+            >
+              <ChevronLeft className="mr-1 h-4 w-4" />
+              Return to shop
+            </Link>
+            <h1 className="font-serif text-3xl font-medium text-primary">Checkout</h1>
+          </div>
+
+          <h2 className="mb-6 lg:mb-8 font-serif text-2xl font-medium text-primary">
             Order Summary
           </h2>
-          <div className="space-y-6">
+          <div className="space-y-4 lg:space-y-6">
             {cart.map((item) => (
               <div key={item.id} className="flex gap-4 p-4 bg-white rounded-xl shadow-sm border border-zinc-100 items-center">
                 <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-[#e8e8e1]">
@@ -264,7 +276,7 @@ export default function CheckoutPage() {
             ))}
           </div>
 
-          <div className="mt-8 space-y-4 border-t pt-8">
+          <div className="mt-8 space-y-4 border-t pt-8 border-black/10">
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Subtotal</span>
               <span className="font-medium">{formatPrice(total)}</span>
@@ -273,7 +285,7 @@ export default function CheckoutPage() {
               <span className="text-muted-foreground">Shipping</span>
               <span className="font-medium text-primary">Free</span>
             </div>
-            <div className="flex justify-between border-t pt-4 text-lg font-medium">
+            <div className="flex justify-between border-t border-black/10 pt-4 text-lg font-medium">
               <span>Total</span>
               <span>{formatPrice(total)}</span>
             </div>

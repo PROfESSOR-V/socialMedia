@@ -40,8 +40,17 @@ interface Order {
   refundRequestedAt?: string;
   refundCompletedAt?: string;
   createdAt: string;
+  cancelReason?: string;
   items: OrderItem[];
 }
+
+const CANCEL_REASONS = [
+  "Changed my mind",
+  "Found a better price elsewhere",
+  "Ordered by mistake",
+  "Shipping cost is too high",
+  "Other"
+];
 
 export default function OrderDetailsPage() {
   const params = useParams();
@@ -49,6 +58,10 @@ export default function OrderDetailsPage() {
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
+  const [cancelModalOpen, setCancelModalOpen] = useState(false);
+  const [selectedReason, setSelectedReason] = useState<string>("Changed my mind");
+  const [customReason, setCustomReason] = useState("");
 
   useEffect(() => {
     const fetchOrder = async () => {
@@ -85,6 +98,25 @@ export default function OrderDetailsPage() {
       console.error("Failed to refresh refund:", error);
     } finally {
       setRefreshing(false);
+    }
+  };
+
+  const submitCancelOrder = async () => {
+    const finalReason = selectedReason === "Other" ? customReason : selectedReason;
+    if (!finalReason.trim()) {
+       alert("Please provide a cancellation reason.");
+       return;
+    }
+    try {
+       setCancelling(true);
+       const updatedOrder = await api.orders.cancel(id, finalReason);
+       if (updatedOrder) setOrder(updatedOrder);
+       setCancelModalOpen(false);
+    } catch (error) {
+       console.error("Failed to cancel order:", error);
+       alert("Failed to cancel the order. It might be too late to cancel.");
+    } finally {
+       setCancelling(false);
     }
   };
 
@@ -271,7 +303,8 @@ export default function OrderDetailsPage() {
                   <div className="ml-3">
                     <h3 className="text-sm font-medium text-red-800">Order Cancelled</h3>
                     <p className="mt-2 text-sm text-red-700">
-                      This order was cancelled. If a payment was made but not refunded, please contact support.
+                      This order was cancelled. {order.cancelReason && `Reason: ${order.cancelReason}. `}
+                      If a payment was made but not refunded, please contact support.
                     </p>
                   </div>
                 </div>
@@ -400,13 +433,81 @@ export default function OrderDetailsPage() {
               </div>
             </div>
             
-            <div className="flex justify-between font-medium text-lg">
+            <div className="flex justify-between font-medium text-lg mb-6">
               <span>Total</span>
               <span>{formatPrice(order.totalAmount)}</span>
             </div>
+            
+            {!isCancelled && !isPickupPending && (
+              <Button 
+                variant="destructive" 
+                className="w-full mt-4" 
+                onClick={() => setCancelModalOpen(true)}
+              >
+                Cancel Order
+              </Button>
+            )}
           </section>
         </div>
       </div>
+
+      {/* Cancel Order Modal */}
+      {cancelModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white rounded-lg shadow-lg w-full max-w-md overflow-hidden">
+            <div className="px-6 py-5 border-b">
+              <h3 className="text-lg font-medium text-primary">Cancel Order</h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                Please tell us why you are cancelling your order. This helps us improve our service.
+              </p>
+            </div>
+            
+            <div className="p-6">
+              <div className="space-y-3">
+                {CANCEL_REASONS.map((reason) => (
+                   <label key={reason} className="flex items-center space-x-3 cursor-pointer">
+                     <input 
+                       type="radio" 
+                       name="cancelReason"
+                       value={reason}
+                       checked={selectedReason === reason}
+                       onChange={() => setSelectedReason(reason)}
+                       className="h-4 w-4 text-primary border-gray-300 focus:ring-primary"
+                     />
+                     <span className="text-sm font-medium">{reason}</span>
+                   </label>
+                ))}
+              </div>
+              
+              {selectedReason === "Other" && (
+                <div className="mt-4">
+                   <label htmlFor="customReason" className="mb-2 block text-sm font-medium">Tell us more:</label>
+                   <textarea 
+                     id="customReason" 
+                     value={customReason} 
+                     onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setCustomReason(e.target.value)} 
+                     placeholder="Enter your reason here..." 
+                     className="w-full min-h-[80px] p-2 text-sm border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+                   />
+                </div>
+              )}
+            </div>
+            
+            <div className="px-6 py-4 bg-gray-50 flex justify-end gap-3 flex-col sm:flex-row">
+              <Button variant="outline" onClick={() => setCancelModalOpen(false)}>
+                Keep Order
+              </Button>
+              <Button 
+                 variant="destructive" 
+                 onClick={submitCancelOrder} 
+                 disabled={cancelling || (selectedReason === "Other" && !customReason.trim())}
+              >
+                {cancelling ? "Cancelling..." : "Confirm Cancellation"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

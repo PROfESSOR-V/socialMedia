@@ -2,6 +2,7 @@
 import { usePathname } from "next/navigation";
 import Header from "./Header";
 import Footer from "./Footer";
+import FeedbackSection from "../features/FeedbackSection";
 import CartDrawer from "../features/CartDrawer";
 import AuthModal from "../ui/AuthModal";
 import MessageModal from "../ui/MessageModal";
@@ -29,6 +30,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
       <MessageModal />
 
       <section className="footer-reveal">
+        <FeedbackSection />
         <Footer />
       </section>
     </>
