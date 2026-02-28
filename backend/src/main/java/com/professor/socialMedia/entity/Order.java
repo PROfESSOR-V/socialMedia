@@ -29,6 +29,7 @@ public class Order {
     // Shiprocket/Shipmozo Tracking Fields
     private ShipmentInfo shipment;
     private String shipmozoMsg;
+    private String shipmozoOrderId;
 
     // Refund Tracking Fields
     private Instant refundRequestedAt;

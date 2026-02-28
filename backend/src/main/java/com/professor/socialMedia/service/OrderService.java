@@ -182,6 +182,10 @@ public class OrderService {
             java.util.Map<String, Object> shipmozoRes = shipmozoShipmentService.createShipment(order);
             if (shipmozoRes != null && "1".equals(String.valueOf(shipmozoRes.get("result")))) {
                 order.setShipmozoMsg("Success");
+                java.util.Map<String, Object> data = (java.util.Map<String, Object>) shipmozoRes.get("data");
+                if (data != null && data.containsKey("order_id")) {
+                    order.setShipmozoOrderId(String.valueOf(data.get("order_id")));
+                }
             } else {
                 order.setShipmozoMsg("Failed");
             }
@@ -206,8 +210,12 @@ public class OrderService {
             throw new RuntimeException("Order already has an AWB assigned.");
         }
 
+        if (order.getShipmozoOrderId() == null || order.getShipmozoOrderId().isEmpty()) {
+            throw new RuntimeException("No Shipmozo Order ID found. Push order to Shipmozo first.");
+        }
+
         try {
-            java.util.Map<String, Object> res = shipmozoShipmentService.fetchOrderDetails(orderId.toHexString());
+            java.util.Map<String, Object> res = shipmozoShipmentService.fetchOrderDetails(order.getShipmozoOrderId());
             if (res != null && "1".equals(String.valueOf(res.get("result")))) {
                 java.util.List<java.util.Map<String, Object>> dataList = (java.util.List<java.util.Map<String, Object>>) res
                         .get("data");

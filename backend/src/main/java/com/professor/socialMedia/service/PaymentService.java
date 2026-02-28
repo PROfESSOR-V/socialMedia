@@ -146,6 +146,10 @@ public class PaymentService {
 
                     if (shipmozoRes != null && "1".equals(String.valueOf(shipmozoRes.get("result")))) {
                         order.setShipmozoMsg("Success");
+                        Map<String, Object> shipmozoData = (Map<String, Object>) shipmozoRes.get("data");
+                        if (shipmozoData != null && shipmozoData.containsKey("order_id")) {
+                            order.setShipmozoOrderId(String.valueOf(shipmozoData.get("order_id")));
+                        }
                     } else {
                         System.err.println("Failed to push to Shipmozo: " + shipmozoRes);
                         order.setShipmozoMsg("Failed");

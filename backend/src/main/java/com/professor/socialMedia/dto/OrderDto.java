@@ -23,6 +23,7 @@ public class OrderDto {
     private String paymentStatus;
     private String shipmentStatus;
     private String shipmozoMsg;
+    private String shipmozoOrderId;
     private Instant refundRequestedAt;
     private Instant refundCompletedAt;
     private String refundReferenceId;
