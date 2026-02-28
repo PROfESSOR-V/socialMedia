@@ -22,6 +22,7 @@ public class OrderDto {
     // Additional tracking fields
     private String paymentStatus;
     private String shipmentStatus;
+    private String shipmozoMsg;
     private Instant refundRequestedAt;
     private Instant refundCompletedAt;
     private String refundReferenceId;

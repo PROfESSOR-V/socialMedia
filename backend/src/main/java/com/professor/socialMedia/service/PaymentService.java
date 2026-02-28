@@ -145,26 +145,10 @@ public class PaymentService {
                     Map<String, Object> shipmozoRes = shipmozoShipmentService.createShipment(order);
 
                     if (shipmozoRes != null && "1".equals(String.valueOf(shipmozoRes.get("result")))) {
-                        // Order successfully pushed. Now auto-assign courier.
-                        Map<String, Object> assignRes = shipmozoShipmentService
-                                .autoAssignCourier(order.getId().toHexString());
-
-                        if (assignRes != null && "1".equals(String.valueOf(assignRes.get("result")))) {
-                            Map<String, Object> assignData = (Map<String, Object>) assignRes.get("data");
-                            if (assignData != null && assignData.containsKey("awb_number")) {
-                                ShipmentInfo info = new ShipmentInfo();
-                                info.setAwb(String.valueOf(assignData.get("awb_number")));
-                                info.setCourier(String.valueOf(assignData.get("courier_company")));
-                                info.setCurrentStatus("Courier Assigned");
-                                order.setShipment(info);
-                            } else {
-                                System.err.println("Auto-assign success but no AWB inside data: " + assignRes);
-                            }
-                        } else {
-                            System.err.println("Failed to auto-assign courier: " + assignRes);
-                        }
+                        order.setShipmozoMsg("Success");
                     } else {
                         System.err.println("Failed to push to Shipmozo: " + shipmozoRes);
+                        order.setShipmozoMsg("Failed");
                     }
                 } catch (org.springframework.web.client.HttpStatusCodeException e) {
                     System.err.println("Shipmozo HTTP Error " + e.getStatusCode() + ": " + e.getResponseBodyAsString());

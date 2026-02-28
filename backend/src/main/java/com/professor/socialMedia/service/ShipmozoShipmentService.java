@@ -149,4 +149,23 @@ public class ShipmozoShipmentService {
 
                 return res.getBody();
         }
+
+        public Map<String, Object> fetchOrderDetails(String orderId) {
+                RestTemplate rest = new RestTemplate();
+
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.APPLICATION_JSON);
+                headers.set("public-key", publicKey);
+                headers.set("private-key", privateKey);
+
+                HttpEntity<String> req = new HttpEntity<>(headers);
+
+                ResponseEntity<Map> res = rest.exchange(
+                                baseUrl + "/get-order-detail/" + orderId,
+                                org.springframework.http.HttpMethod.GET,
+                                req,
+                                Map.class);
+
+                return res.getBody();
+        }
 }

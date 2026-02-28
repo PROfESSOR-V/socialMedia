@@ -179,11 +179,60 @@ public class OrderService {
         }
 
         try {
-            shipmozoShipmentService.createShipment(order);
-            // Re-fetch since createShipment modifies and saves the order
-            return findById(orderId);
+            java.util.Map<String, Object> shipmozoRes = shipmozoShipmentService.createShipment(order);
+            if (shipmozoRes != null && "1".equals(String.valueOf(shipmozoRes.get("result")))) {
+                order.setShipmozoMsg("Success");
+            } else {
+                order.setShipmozoMsg("Failed");
+            }
+            orderRepository.save(order);
+            return order;
         } catch (Exception e) {
+            order.setShipmozoMsg("Failed");
+            orderRepository.save(order);
             throw new RuntimeException("Failed to retry Shipmozo shipment: " + e.getMessage());
+        }
+    }
+
+    public Order fetchAwb(ObjectId orderId) {
+        Order order = findById(orderId);
+
+        if (order.getStatus() != OrderStatus.PAID) {
+            throw new RuntimeException("Cannot fetch AWB. Order is not PAID.");
+        }
+
+        if (order.getShipment() != null && order.getShipment().getAwb() != null
+                && !order.getShipment().getAwb().isEmpty()) {
+            throw new RuntimeException("Order already has an AWB assigned.");
+        }
+
+        try {
+            java.util.Map<String, Object> res = shipmozoShipmentService.fetchOrderDetails(orderId.toHexString());
+            if (res != null && "1".equals(String.valueOf(res.get("result")))) {
+                java.util.List<java.util.Map<String, Object>> dataList = (java.util.List<java.util.Map<String, Object>>) res
+                        .get("data");
+                if (dataList != null && !dataList.isEmpty()) {
+                    java.util.Map<String, Object> data = dataList.get(0);
+                    java.util.Map<String, Object> shippingDetails = (java.util.Map<String, Object>) data
+                            .get("shipping_details");
+
+                    if (shippingDetails != null && shippingDetails.get("awb_number") != null
+                            && !String.valueOf(shippingDetails.get("awb_number")).isEmpty()) {
+                        ShipmentInfo info = order.getShipment() != null ? order.getShipment() : new ShipmentInfo();
+                        info.setAwb(String.valueOf(shippingDetails.get("awb_number")));
+                        info.setCourier(String.valueOf(shippingDetails.get("courier_company")));
+                        info.setCurrentStatus("Courier Assigned");
+                        order.setShipment(info);
+                        return orderRepository.save(order);
+                    } else {
+                        throw new RuntimeException(
+                                "AWB not yet generated in Shipmozo. Assign a courier on Shipmozo dashboard first.");
+                    }
+                }
+            }
+            throw new RuntimeException("Failed to fetch order details from Shipmozo.");
+        } catch (Exception e) {
+            throw new RuntimeException("Error fetching AWB: " + e.getMessage());
         }
     }
 

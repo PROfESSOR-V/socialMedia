@@ -14,6 +14,11 @@ interface OrderData {
   status: string;
   paymentStatus?: string;
   shipmentStatus?: string;
+  shipmozoMsg?: string;
+  shipment?: {
+    awb?: string;
+    courier?: string;
+  };
   refundReferenceId?: string;
   createdAt: string;
   userName: string;
@@ -57,6 +62,42 @@ export default function AdminOrdersPage() {
       setError("An error occurred while fetching orders.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handlePushRetry = async (orderId: string) => {
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || "https://socialmedia-0qzd.onrender.com";
+      const res = await fetch(`${baseUrl}/api/orders/${orderId}/ship/retry`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || "Retry failed");
+      }
+      await fetchData(); 
+    } catch(err: any) {
+      alert("Failed to retry push: " + err.message);
+      console.error(err);
+    }
+  };
+
+  const handleFetchAwb = async (orderId: string) => {
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || "https://socialmedia-0qzd.onrender.com";
+      const res = await fetch(`${baseUrl}/api/orders/${orderId}/fetch-awb`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || "Fetch AWB failed");
+      }
+      await fetchData(); 
+    } catch(err: any) {
+      alert(err.message || "Failed to fetch AWB. Please ensure you assigned a courier & pickup location on Shipmozo dashboard.");
+      console.error(err);
     }
   };
 
@@ -160,6 +201,8 @@ export default function AdminOrdersPage() {
                 <th className="px-6 py-3">Customer</th>
                 <th className="px-6 py-3">Date</th>
                 <th className="px-6 py-3">Status</th>
+                <th className="px-6 py-3">Shipmozo</th>
+                <th className="px-6 py-3">AWB</th>
                 <th className="px-6 py-3">Cashfree Ref ID</th>
                 <th className="px-6 py-3">Total</th>
                 <th className="px-6 py-3 text-right">Actions</th>
@@ -198,6 +241,37 @@ export default function AdminOrdersPage() {
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${getStatusColor(order.status, order.paymentStatus)}`}>
                           {getDisplayStatus(order)}
                         </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        {order.shipmozoMsg === "Success" ? (
+                           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
+                             Success
+                           </span>
+                        ) : order.paymentStatus === "PAID" && (order.status !== "CANCELLED") ? (
+                           <div className="flex flex-col gap-1 items-start">
+                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-red-50 text-red-700 border border-red-200">
+                               Failed
+                             </span>
+                             <button onClick={() => handlePushRetry(order.id as string)} className="text-[10px] hover:underline text-blue-600 font-medium flex items-center gap-1">
+                               <RefreshCw className="w-3 h-3" /> Push Again
+                             </button>
+                           </div>
+                        ) : (
+                           <span className="text-zinc-400 text-xs">-</span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4">
+                        {order.shipment?.awb ? (
+                           <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-mono bg-emerald-50 text-emerald-700 border border-emerald-200">
+                             ✓ {order.shipment.awb}
+                           </span>
+                        ) : order.shipmozoMsg === "Success" ? (
+                           <button onClick={() => handleFetchAwb(order.id as string)} className="text-[10px] hover:bg-zinc-100 px-2 py-1 rounded border border-zinc-200 font-medium flex items-center gap-1 text-zinc-700">
+                               Get AWB
+                           </button>
+                        ) : (
+                           <span className="text-zinc-400 text-xs">-</span>
+                        )}
                       </td>
                       <td className="px-6 py-4 text-zinc-500 font-mono text-xs">
                         {order.refundReferenceId || "-"}

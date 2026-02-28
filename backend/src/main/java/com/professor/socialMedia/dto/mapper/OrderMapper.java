@@ -44,6 +44,7 @@ public class OrderMapper {
         orderDto.setRefundRequestedAt(order.getRefundRequestedAt());
         orderDto.setRefundCompletedAt(order.getRefundCompletedAt());
         orderDto.setRefundReferenceId(order.getRefundReferenceId());
+        orderDto.setShipmozoMsg(order.getShipmozoMsg());
 
         orderDto.setShipment(order.getShipment());
         orderDto.setCreatedAt(order.getCreatedAt());
