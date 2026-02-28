@@ -19,9 +19,20 @@ interface Order {
   userId: string;
   totalAmount: number;
   status: string;
-  awb?: string;
-  courier?: string;
-  trackingStatus?: string;
+  shipment?: {
+    shipmentId?: string;
+    awb?: string;
+    courier?: string;
+    currentStatus?: string;
+    orderStatus?: string;
+    expectedDeliveryDate?: string;
+    statusTime?: string;
+    timeline?: Array<{
+      status: string;
+      location: string;
+      date: string;
+    }>;
+  };
   createdAt: string;
   items: OrderItem[];
   userName?: string;
@@ -169,7 +180,7 @@ export default function AdminOrderDetailsPage() {
       steps.push({ id: "processing", title: "Processing", description: "Order is being packed", icon: Factory });
     }
 
-    const statusStr = order.trackingStatus ? order.trackingStatus.toUpperCase() : "";
+    const statusStr = order.shipment?.currentStatus ? order.shipment.currentStatus.toUpperCase() : "";
 
     if (statusStr.includes('DISPATCHED') || statusStr.includes('SHIPPED') || order.status === 'SHIPPED') {
       steps.push({ id: "shipped", title: "Dispatched", description: "Handed over to delivery partner", icon: Truck });
@@ -270,7 +281,7 @@ export default function AdminOrderDetailsPage() {
               </span>
             </div>
 
-            {order.status === 'PAID' && !order.awb && (
+            {order.status === 'PAID' && !order.shipment?.awb && (
               <div className="mb-6 rounded-xl bg-yellow-50 p-4 border border-yellow-200 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between shadow-sm">
                 <div className="flex items-start gap-3">
                   <AlertCircle className="h-5 w-5 text-yellow-600 shrink-0 mt-0.5" />
@@ -295,11 +306,11 @@ export default function AdminOrderDetailsPage() {
               </div>
             )}
 
-            {order.awb && (
+            {order.shipment?.awb && (
                <div className="mb-8 p-4 bg-zinc-50 rounded-xl border border-zinc-200 text-sm flex flex-col sm:flex-row sm:gap-6 gap-3">
-                 <p><span className="text-zinc-500 mr-1 text-xs uppercase tracking-wider">AWB</span><br/><span className="font-medium tracking-wide text-black">{order.awb}</span></p>
-                 <p><span className="text-zinc-500 mr-1 text-xs uppercase tracking-wider">Courier</span><br/><span className="font-medium text-black">{order.courier || "Pending Assignment"}</span></p>
-                 <p className="sm:ml-auto"><span className="text-zinc-500 mr-1 text-xs uppercase tracking-wider">Status</span><br/><span className="font-semibold text-black">{order.trackingStatus}</span></p>
+                 <p><span className="text-zinc-500 mr-1 text-xs uppercase tracking-wider">AWB</span><br/><span className="font-medium tracking-wide text-black">{order.shipment.awb}</span></p>
+                 <p><span className="text-zinc-500 mr-1 text-xs uppercase tracking-wider">Courier</span><br/><span className="font-medium text-black">{order.shipment.courier || "Pending Assignment"}</span></p>
+                 <p className="sm:ml-auto"><span className="text-zinc-500 mr-1 text-xs uppercase tracking-wider">Status</span><br/><span className="font-semibold text-black">{order.shipment.currentStatus}</span></p>
                </div>
             )}
 

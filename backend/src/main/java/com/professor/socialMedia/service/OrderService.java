@@ -173,7 +173,8 @@ public class OrderService {
             throw new RuntimeException("Cannot retry shipment. Order is not PAID.");
         }
 
-        if (order.getAwb() != null && !order.getAwb().isEmpty()) {
+        if (order.getShipment() != null && order.getShipment().getAwb() != null
+                && !order.getShipment().getAwb().isEmpty()) {
             throw new RuntimeException("Cannot retry shipment. Order already has an AWB assigned.");
         }
 
@@ -188,18 +189,62 @@ public class OrderService {
 
     public Order refreshTracking(ObjectId orderId) {
         Order order = findById(orderId);
+        ShipmentInfo shipment = order.getShipment();
 
-        if (order.getAwb() == null || order.getAwb().isEmpty()) {
+        if (shipment == null || shipment.getAwb() == null || shipment.getAwb().isEmpty()) {
             return order; // Return unchanged as shipment hasn't started yet
         }
 
         try {
-            java.util.Map<String, Object> res = shipmozoTrackingService.track(order.getAwb());
+            java.util.Map<String, Object> res = shipmozoTrackingService.track(shipment.getAwb());
             if (res != null) {
                 String status = (String) res.get("current_status");
                 if (status != null) {
-                    order.setTrackingStatus(status);
-                    order.setTrackingData(res);
+                    shipment.setCurrentStatus(status);
+                    shipment.setOrderStatus((String) res.get("order_status"));
+                    shipment.setLastSyncedAt(java.time.Instant.now());
+
+                    Object expectedDelivery = res.get("expected_delivery_date");
+                    if (expectedDelivery instanceof String && !((String) expectedDelivery).isEmpty()) {
+                        try {
+                            shipment.setExpectedDeliveryDate(
+                                    java.time.Instant.parse(((String) expectedDelivery).replace(" ", "T") + "Z"));
+                        } catch (Exception ex) {
+                            // Ignore parsing errors for expected delivery date
+                        }
+                    }
+
+                    Object statusTime = res.get("status_time");
+                    if (statusTime instanceof String && !((String) statusTime).isEmpty()) {
+                        try {
+                            shipment.setStatusTime(
+                                    java.time.Instant.parse(((String) statusTime).replace(" ", "T") + "Z"));
+                        } catch (Exception ex) {
+                            // Ignore parsing errors for status time
+                        }
+                    }
+
+                    Object scanDetailsObj = res.get("scan_detail");
+                    if (scanDetailsObj instanceof java.util.List) {
+                        java.util.List<java.util.Map<String, Object>> scans = (java.util.List<java.util.Map<String, Object>>) scanDetailsObj;
+                        java.util.List<TrackingEvent> events = new java.util.ArrayList<>();
+                        for (java.util.Map<String, Object> s : scans) {
+                            TrackingEvent e = new TrackingEvent();
+                            e.setStatus((String) s.get("status"));
+                            e.setLocation((String) s.get("location"));
+
+                            Object dateObj = s.get("date");
+                            if (dateObj instanceof String) {
+                                try {
+                                    e.setDate(java.time.Instant.parse(((String) dateObj).replace(" ", "T") + "Z"));
+                                } catch (Exception ex) {
+                                    // ignore event if date fails
+                                }
+                            }
+                            events.add(e);
+                        }
+                        shipment.setTimeline(events);
+                    }
 
                     try {
                         String trackingJson = new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(res);
@@ -208,7 +253,10 @@ public class OrderService {
                         if (lowerJson.contains("delivered") || lowerJson.contains("completed")) {
                             order.setShipmentStatus(ShipmentStatus.DELIVERED);
                             order.setStatus(OrderStatus.DELIVERED);
-                        } else if (lowerJson.contains("in transit") || lowerJson.contains("vehicle departed")) {
+                        } else if (lowerJson.contains("in transit") || lowerJson.contains("vehicle departed")
+                                || lowerJson.contains("bag added to trip")) {
+                            order.setShipmentStatus(ShipmentStatus.IN_TRANSIT);
+                        } else if (lowerJson.contains("out for delivery")) {
                             order.setShipmentStatus(ShipmentStatus.IN_TRANSIT);
                         } else if (lowerJson.contains("out for pickup") || lowerJson.contains("shipment picked up")) {
                             order.setShipmentStatus(ShipmentStatus.PICKED_UP);
@@ -216,7 +264,7 @@ public class OrderService {
                             order.setShipmentStatus(ShipmentStatus.MANIFESTED);
                         }
                     } catch (Exception ex) {
-                        System.err.println("Failed to parse tracking JSON data for AWB: " + order.getAwb());
+                        System.err.println("Failed to parse tracking JSON data for AWB: " + shipment.getAwb());
                     }
 
                     if ("DELIVERED".equalsIgnoreCase(status)) {
@@ -226,7 +274,8 @@ public class OrderService {
                 }
             }
         } catch (Exception e) {
-            throw new RuntimeException("Failed to track Shipmozo AWB " + order.getAwb() + ": " + e.getMessage());
+            throw new RuntimeException("Failed to track Shipmozo AWB "
+                    + (shipment != null ? shipment.getAwb() : "unknown") + ": " + e.getMessage());
         }
 
         return orderRepository.save(order);

@@ -128,4 +128,25 @@ public class ShipmozoShipmentService {
 
                 return res.getBody();
         }
+
+        public Map<String, Object> autoAssignCourier(String orderId) {
+                RestTemplate rest = new RestTemplate();
+
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.APPLICATION_JSON);
+                headers.set("public-key", publicKey);
+                headers.set("private-key", privateKey);
+
+                Map<String, Object> body = new HashMap<>();
+                body.put("order_id", orderId);
+
+                HttpEntity<Map<String, Object>> req = new HttpEntity<>(body, headers);
+
+                ResponseEntity<Map> res = rest.postForEntity(
+                                baseUrl + "/auto-assign-order",
+                                req,
+                                Map.class);
+
+                return res.getBody();
+        }
 }

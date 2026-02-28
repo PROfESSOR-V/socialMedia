@@ -26,12 +26,8 @@ public class Order {
     private ObjectId paymentId;
     private ObjectId cartId;
 
-    // Shiprocket Tracking Fields
-    private String shipmentId;
-    private String awb;
-    private String courier;
-    private String trackingStatus;
-    private Object trackingData;
+    // Shiprocket/Shipmozo Tracking Fields
+    private ShipmentInfo shipment;
 
     // Refund Tracking Fields
     private Instant refundRequestedAt;

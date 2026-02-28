@@ -45,10 +45,7 @@ public class OrderMapper {
         orderDto.setRefundCompletedAt(order.getRefundCompletedAt());
         orderDto.setRefundReferenceId(order.getRefundReferenceId());
 
-        orderDto.setAwb(order.getAwb());
-        orderDto.setCourier(order.getCourier());
-        orderDto.setTrackingStatus(order.getTrackingStatus());
-        orderDto.setTrackingData(order.getTrackingData());
+        orderDto.setShipment(order.getShipment());
         orderDto.setCreatedAt(order.getCreatedAt());
 
         // Map Customer Details

@@ -1,17 +1,12 @@
 package com.professor.socialMedia.controler;
 
-import com.professor.socialMedia.Security.CustomUserDetail;
-import com.professor.socialMedia.dto.request.CreatePaymentRequest;
-import com.professor.socialMedia.dto.request.PaymentWebhookRequest;
-import com.professor.socialMedia.dto.response.ApiResponse;
 import com.professor.socialMedia.entity.Order;
 import com.professor.socialMedia.entity.Payment;
 import com.professor.socialMedia.entity.User;
-import com.professor.socialMedia.service.CashfreeService;
-import com.professor.socialMedia.service.OrderService;
 import com.professor.socialMedia.service.PaymentService;
 import com.professor.socialMedia.service.UserService;
-import org.bson.types.ObjectId;
+import com.professor.socialMedia.service.OrderService;
+import com.professor.socialMedia.service.CashfreeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -37,13 +32,13 @@ public class PaymentControler {
         private CashfreeService cashfreeService;
 
         @PostMapping("/order")
-        public ResponseEntity<ApiResponse<Map<String, Object>>> createPayment(
-                        @AuthenticationPrincipal CustomUserDetail user,
-                        @RequestBody CreatePaymentRequest request) {
+        public ResponseEntity<Map<String, Object>> createPayment(
+                        @AuthenticationPrincipal org.springframework.security.core.userdetails.UserDetails user,
+                        @RequestBody Map<String, Object> request) {
                 User userEntity = userService.findByEmail(user.getUsername()).orElseThrow(
                                 () -> new RuntimeException("User not found!"));
                 Order order = orderService.findByIdAndUserId(
-                                new ObjectId(request.getOrderId()),
+                                new org.bson.types.ObjectId((String) request.get("orderId")),
                                 userEntity.getId());
                 // 1. Create Internal Payment Tracking
                 paymentService.createPayment(
@@ -52,14 +47,14 @@ public class PaymentControler {
                                 "CASHFREE");
                 // 2. Create Cashfree Order
                 Map<String, Object> cashfreeOrder = cashfreeService.createOrder(order, userEntity.getEmail(),
-                                userEntity.getMobileNumber(), request.getReturnUrl());
+                                userEntity.getMobileNumber(), (String) request.get("returnUrl"));
 
                 return ResponseEntity.status(HttpStatus.CREATED)
-                                .body(ApiResponse.success("Payment order created successfully", cashfreeOrder));
+                                .body(cashfreeOrder);
         }
 
         @PostMapping("/webhook")
-        public ResponseEntity<ApiResponse<Void>> webhook(
+        public ResponseEntity<Map<String, String>> webhook(
                         @RequestBody String payload,
                         @RequestHeader("x-webhook-signature") String signature,
                         @RequestHeader(value = "x-webhook-timestamp", required = false) String timestamp) {
@@ -67,16 +62,16 @@ public class PaymentControler {
                 try {
                         paymentService.handleWebhook(payload, signature, timestamp);
                         return ResponseEntity.accepted()
-                                        .body(ApiResponse.success("Webhook processed successfully", null));
+                                        .body(Map.of("message", "Webhook processed successfully"));
                 } catch (RuntimeException e) {
                         e.printStackTrace();
                         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                                        .body(ApiResponse.error("Invalid signature: " + e.getMessage()));
+                                        .body(Map.of("error", "Invalid signature: " + e.getMessage()));
                 }
         }
 
         @PostMapping("/refund-webhook")
-        public ResponseEntity<ApiResponse<Void>> refundWebhook(
+        public ResponseEntity<Map<String, String>> refundWebhook(
                         @RequestBody String payload,
                         @RequestHeader(value = "x-webhook-signature", required = false) String signature,
                         @RequestHeader(value = "x-webhook-timestamp", required = false) String timestamp) {
@@ -84,11 +79,11 @@ public class PaymentControler {
                 try {
                         paymentService.handleRefundWebhook(payload, signature, timestamp);
                         return ResponseEntity.accepted()
-                                        .body(ApiResponse.success("Refund webhook processed successfully", null));
+                                        .body(Map.of("message", "Refund webhook processed successfully"));
                 } catch (RuntimeException e) {
                         e.printStackTrace();
                         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                                        .body(ApiResponse.error("Invalid signature or payload: " + e.getMessage()));
+                                        .body(Map.of("error", "Invalid signature or payload: " + e.getMessage()));
                 }
         }
         /**

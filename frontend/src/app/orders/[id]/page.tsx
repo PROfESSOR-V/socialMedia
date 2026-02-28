@@ -20,12 +20,22 @@ interface Order {
   id: string;
   totalAmount: number;
   status: string;
-  awb?: string;
-  courier?: string;
-  trackingStatus?: string;
-  trackingData?: any;
-  paymentStatus?: string;
   shipmentStatus?: string;
+  shipment?: {
+    shipmentId?: string;
+    awb?: string;
+    courier?: string;
+    currentStatus?: string;
+    orderStatus?: string;
+    expectedDeliveryDate?: string;
+    statusTime?: string;
+    timeline?: Array<{
+      status: string;
+      location: string;
+      date: string;
+    }>;
+  };
+  paymentStatus?: string;
   refundReferenceId?: string;
   refundRequestedAt?: string;
   refundCompletedAt?: string;
@@ -102,13 +112,13 @@ export default function OrderDetailsPage() {
   const isCancelled = order.status === 'CANCELLED' || order.status === 'FAILED';
 
   const sStatus = order.shipmentStatus || "NOT_CREATED";
-  const statusStr = order.trackingStatus ? order.trackingStatus.toUpperCase() : "";
+  const statusStr = order.shipment?.currentStatus ? order.shipment.currentStatus.toUpperCase() : "";
 
   const isProcessing = order.status === 'PAID' || order.status === 'DELIVERED' || order.status === 'SHIPPED' || sStatus !== 'NOT_CREATED';
   const isPickupPending = sStatus === 'MANIFESTED' || sStatus === 'PICKED_UP' || sStatus === 'IN_TRANSIT' || sStatus === 'DELIVERED';
   const isPickupComplete = sStatus === 'PICKED_UP' || sStatus === 'IN_TRANSIT' || sStatus === 'DELIVERED';
   const isInTransit = sStatus === 'IN_TRANSIT' || sStatus === 'DELIVERED';
-  const isOutForDelivery = statusStr.includes('OUT FOR DELIVERY') || sStatus === 'DELIVERED';
+  const isOutForDelivery = sStatus === 'OUT_FOR_DELIVERY' || sStatus === 'DELIVERED' || statusStr.includes('OUT FOR DELIVERY');
   const isDelivered = sStatus === 'DELIVERED' || statusStr.includes('DELIVERED') || statusStr.includes('COMPLETED');
 
   const allSteps = [
@@ -121,23 +131,7 @@ export default function OrderDetailsPage() {
     { id: "delivered", title: "Delivered", description: "Package arrived at destination", icon: CheckCircle2, completed: isDelivered, current: isDelivered }
   ];
 
-  const getTrackingHistory = (data: any): any[] => {
-    if (!data) return [];
-    if (Array.isArray(data)) return data;
-    if (data.tracking_data && Array.isArray(data.tracking_data.track_status)) return data.tracking_data.track_status;
-    if (data.tracking_data && Array.isArray(data.tracking_data)) return data.tracking_data;
-    if (data.scans && Array.isArray(data.scans)) return data.scans;
-    if (data.history && Array.isArray(data.history)) return data.history;
-    
-    for (const key in data) {
-       if (Array.isArray(data[key]) && data[key].length > 0 && typeof data[key][0] === 'object') {
-           return data[key];
-       }
-    }
-    return [];
-  };
-
-  const trackingHistories = getTrackingHistory(order.trackingData);
+  const trackingHistories = order.shipment?.timeline || [];
 
   const isRefundInitiated = order.paymentStatus === 'REFUND_INITIATED';
   const isRefunded = order.paymentStatus === 'REFUNDED';
@@ -216,11 +210,11 @@ export default function OrderDetailsPage() {
               ) : null}
             </div>
 
-            {order.awb && !isRefundFlow && !isCancelled && (
+            {order.shipment?.awb && !isRefundFlow && !isCancelled && (
                <div className="mb-6 p-4 bg-secondary/10 rounded-md border border-secondary text-sm flex flex-col sm:flex-row sm:gap-6 gap-2">
-                 <p><span className="text-muted-foreground mr-1">AWB:</span> <span className="font-medium tracking-wide">{order.awb}</span></p>
-                 <p><span className="text-muted-foreground mr-1">Courier:</span> <span className="font-medium">{order.courier || "Pending Assignment"}</span></p>
-                 <p className="sm:ml-auto"><span className="text-muted-foreground mr-1">Status:</span> <span className="font-semibold text-primary">{order.trackingStatus}</span></p>
+                 <p><span className="text-muted-foreground mr-1">AWB:</span> <span className="font-medium tracking-wide">{order.shipment.awb}</span></p>
+                 <p><span className="text-muted-foreground mr-1">Courier:</span> <span className="font-medium">{order.shipment.courier || "Pending Assignment"}</span></p>
+                 <p className="sm:ml-auto"><span className="text-muted-foreground mr-1">Status:</span> <span className="font-semibold text-primary">{order.shipment.currentStatus}</span></p>
                </div>
             )}
 
@@ -353,13 +347,13 @@ export default function OrderDetailsPage() {
                      {trackingHistories.map((row, idx) => (
                         <tr key={idx} className="hover:bg-zinc-50 transition-colors">
                           <td className="px-4 py-4 text-zinc-600">
-                            {row.date || row.Date || row.date_time || row.time || row.timestamp || "-"}
+                            {row.date || "-"}
                           </td>
                           <td className="px-4 py-4 text-zinc-800">
-                            {row.location || row.Location || row.city || "-"}
+                            {row.location || "-"}
                           </td>
                           <td className="px-4 py-4 text-zinc-900 font-medium">
-                            {row.status || row.Status || row.activity || row.message || "-"}
+                            {row.status || "-"}
                           </td>
                         </tr>
                      ))}

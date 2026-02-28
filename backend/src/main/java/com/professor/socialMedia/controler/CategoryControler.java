@@ -1,8 +1,8 @@
 package com.professor.socialMedia.controler;
 
 import com.professor.socialMedia.dto.CategoryDto;
-import com.professor.socialMedia.dto.CreateCategoryRequest;
 import com.professor.socialMedia.dto.mapper.CategoryMapper;
+import com.professor.socialMedia.dto.request.CreateCategoryRequest;
 import com.professor.socialMedia.dto.response.ApiResponse;
 import com.professor.socialMedia.entity.Category;
 import com.professor.socialMedia.service.CategoryService;
@@ -31,7 +31,7 @@ public class CategoryControler {
      * Get all categories - PUBLIC endpoint
      */
     @GetMapping
-    public ResponseEntity<ApiResponse<List<CategoryDto>>> getAllCategories(){
+    public ResponseEntity<ApiResponse<List<CategoryDto>>> getAllCategories() {
         List<Category> categories = categoryService.findAll();
         List<CategoryDto> categoryDtos = categories.stream()
                 .map(categoryMapper::mapCategory)
@@ -46,16 +46,15 @@ public class CategoryControler {
 
     @PostMapping("/add")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<CategoryDto>> createCategory(@Valid  @RequestBody CreateCategoryRequest req){
+    public ResponseEntity<ApiResponse<CategoryDto>> createCategory(@Valid @RequestBody CreateCategoryRequest req) {
         Category category = new Category();
         category.setName(req.getName());
 
-        Category created =  categoryService.create(category);
+        Category created = categoryService.create(category);
         CategoryDto categoryDto = categoryMapper.mapCategory(created);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(
-                ApiResponse.success("Category created successfully", categoryDto)
-        );
+                ApiResponse.success("Category created successfully", categoryDto));
     }
 
     @PutMapping("/{id}")

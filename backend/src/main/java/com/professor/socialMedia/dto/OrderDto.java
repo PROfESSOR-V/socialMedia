@@ -17,10 +17,7 @@ public class OrderDto {
     private List<OrderItemDto> items;
     private Double totalAmount;
     private OrderStatus status;
-    private String awb;
-    private String courier;
-    private String trackingStatus;
-    private Object trackingData;
+    private com.professor.socialMedia.entity.ShipmentInfo shipment;
 
     // Additional tracking fields
     private String paymentStatus;

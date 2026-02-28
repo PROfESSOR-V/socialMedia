@@ -23,22 +23,26 @@ public class ShipmozoTrackingScheduler {
     // request)
     public void updateTrackingStatuses() {
 
-        List<Order> activeOrders = orderRepository.findByTrackingStatusNot("DELIVERED");
+        List<Order> activeOrders = orderRepository.findAll().stream()
+                .filter(o -> o.getShipmentStatus() != null
+                        && o.getShipmentStatus() != com.professor.socialMedia.entity.ShipmentStatus.DELIVERED)
+                .toList();
 
         for (Order order : activeOrders) {
 
-            if (order.getAwb() == null)
+            if (order.getShipment() == null || order.getShipment().getAwb() == null)
                 continue;
 
+            String awb = order.getShipment().getAwb();
+
             try {
-                Map<String, Object> res = trackingService.track(order.getAwb());
+                Map<String, Object> res = trackingService.track(awb);
 
                 if (res != null) {
                     String status = (String) res.get("current_status");
 
                     if (status != null) {
-                        order.setTrackingStatus(status);
-                        order.setTrackingData(res);
+                        order.getShipment().setCurrentStatus(status);
 
                         try {
                             String trackingJson = new com.fasterxml.jackson.databind.ObjectMapper()
@@ -57,7 +61,7 @@ public class ShipmozoTrackingScheduler {
                                 order.setShipmentStatus(com.professor.socialMedia.entity.ShipmentStatus.MANIFESTED);
                             }
                         } catch (Exception ex) {
-                            System.err.println("Failed to parse tracking JSON data for AWB: " + order.getAwb());
+                            System.err.println("Failed to parse tracking JSON data for AWB: " + awb);
                         }
 
                         if ("DELIVERED".equalsIgnoreCase(status)) {
@@ -69,7 +73,7 @@ public class ShipmozoTrackingScheduler {
                     }
                 }
             } catch (Exception e) {
-                System.err.println("Failed to track Shipmozo AWB " + order.getAwb() + ": " + e.getMessage());
+                System.err.println("Failed to track Shipmozo AWB " + awb + ": " + e.getMessage());
             }
         }
     }
