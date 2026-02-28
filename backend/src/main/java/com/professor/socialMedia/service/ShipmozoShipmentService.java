@@ -98,7 +98,7 @@ public class ShipmozoShipmentService {
                 body.put("length", 10); // in cm
                 body.put("width", 10);
                 body.put("height", 10);
-                body.put("warehouse_id", ""); // Needs to be explicitly empty if using default
+                body.put("warehouse_id", "102813"); // Needs to be explicitly empty if using default
                 body.put("cod_amount", "");
 
                 List<Map<String, Object>> itemsList = new ArrayList<>();
