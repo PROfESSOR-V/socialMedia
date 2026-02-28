@@ -108,9 +108,8 @@ export default function EditProductPage() {
   const uploadImage = async (file: File) => {
     const uploadData = new FormData();
     uploadData.append("file", file);
-    const token = JSON.parse(localStorage.getItem('auth-storage') || '{}')?.state?.token;
-    const { data } = await axios.post("https://socialmedia-0qzd.onrender.com/api/upload", uploadData, {
-      headers: { Authorization: `Bearer ${token}` }
+    const { data } = await apiClient.post("/api/upload", uploadData, {
+      headers: { "Content-Type": "multipart/form-data" }
     });
     return data.url;
   };

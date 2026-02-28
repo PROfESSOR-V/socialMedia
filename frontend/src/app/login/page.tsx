@@ -26,14 +26,24 @@ function LoginForm() {
     const password = formData.get("password") as string;
 
     try {
-      const { data } = await apiClient.post("/auth/login", { email, password });
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      
+      const data = await res.json();
+      
+      if (!res.ok) {
+        throw new Error(data.message || "Invalid credentials.");
+      }
       
       if (data.token) {
         setLogin(data.token, { id: "", email, role: data.role || "CUSTOMER" });
         router.push("/");
       }
     } catch (err: any) {
-      setError(err.response?.data?.message || err.response?.status === 403 ? "Invalid credentials." : "Failed to sign in.");
+      setError(err.message || "Failed to sign in.");
     } finally {
       setIsLoading(false);
     }

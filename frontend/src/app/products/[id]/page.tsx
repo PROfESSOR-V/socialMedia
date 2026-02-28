@@ -13,7 +13,7 @@ import apiClient from "@/lib/apiClient";
 export default function ProductPage({ params }: { params: { id: string } }) {
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const { addToCart, token, setAuthModalOpen } = useStore();
+  const { addToCart, user, setAuthModalOpen } = useStore();
   const [quantity, setQuantity] = useState(1);
   const [selectedVariant, setSelectedVariant] = useState<any>(null);
   const router = useRouter();
@@ -49,7 +49,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
   }
 
   const handleAddToCart = () => {
-    if (!token) {
+    if (!user) {
       setAuthModalOpen(true);
       return;
     }

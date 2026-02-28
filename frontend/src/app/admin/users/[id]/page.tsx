@@ -5,6 +5,7 @@ import { useStore } from "@/store/useStore";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, User as UserIcon, MapPin, Phone, Mail, Calendar, Shield, AlertCircle, RefreshCw } from "lucide-react";
+import apiClient from "@/lib/apiClient";
 
 interface Address {
   name: string;
@@ -40,20 +41,9 @@ export default function UserDetailsPage({ params }: { params: { id: string } }) 
       setIsLoading(true);
       setError(null);
       
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "https://socialmedia-0qzd.onrender.com"}/api/user/${userId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await apiClient.get(`/api/user/${userId}`);
+      const data = response.data;
 
-      if (!response.ok) {
-        if (response.status === 404) {
-          throw new Error("User not found");
-        }
-        throw new Error("Failed to fetch user details");
-      }
-
-      const data = await response.json();
       if (data.success) {
         setUserData(data.data);
       } else {
@@ -61,7 +51,8 @@ export default function UserDetailsPage({ params }: { params: { id: string } }) 
       }
     } catch (err: any) {
       console.error("Error fetching user:", err);
-      setError(err.message || "An unexpected error occurred.");
+      if (err.response?.status === 404) setError("User not found");
+      else setError(err.response?.data?.message || err.message || "An unexpected error occurred.");
     } finally {
       setIsLoading(false);
     }
@@ -70,7 +61,7 @@ export default function UserDetailsPage({ params }: { params: { id: string } }) 
   useEffect(() => {
     if (!_hasHydrated) return;
 
-    if (!token || user?.role !== "ADMIN") {
+    if (!user || user?.role !== "ADMIN") {
       router.push("/login");
       return;
     }

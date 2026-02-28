@@ -24,7 +24,7 @@ interface StoreState {
   token: string | null;
   user: User | null;
   setLogin: (token: string, user: User) => void;
-  setLogout: () => void;
+  setLogout: () => Promise<void>;
   setUser: (user: User) => void;
 
   // Auth Modal State
@@ -64,7 +64,14 @@ export const useStore = create<StoreState>()(
       token: null,
       user: null,
       setLogin: (token, user) => set({ token, user }),
-      setLogout: () => set({ token: null, user: null }),
+      setLogout: async () => {
+        try {
+          await fetch('/api/auth/logout', { method: 'POST' });
+        } catch (e) {
+          console.error('Logout failed:', e);
+        }
+        set({ token: null, user: null });
+      },
       setUser: (user) => set({ user }),
 
       // Hydration INITIAL STATE
@@ -160,7 +167,7 @@ export const useStore = create<StoreState>()(
     }),
     {
       name: 'auth-storage', // unique name
-      partialize: (state) => ({ token: state.token, user: state.user, cart: state.cart }), // Save auth and cart
+      partialize: (state) => ({ user: state.user, cart: state.cart }), // Save auth and cart
       onRehydrateStorage: () => (state) => {
         state?.setHasHydrated(true);
       },

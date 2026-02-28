@@ -121,10 +121,12 @@ public class ShipmozoShipmentService {
 
                 HttpEntity<Map<String, Object>> req = new HttpEntity<>(body, headers);
 
-                ResponseEntity<Map> res = rest.postForEntity(
+                ResponseEntity<Map<String, Object>> res = rest.exchange(
                                 baseUrl + "/push-order",
+                                org.springframework.http.HttpMethod.POST,
                                 req,
-                                Map.class);
+                                new org.springframework.core.ParameterizedTypeReference<Map<String, Object>>() {
+                                });
 
                 return res.getBody();
         }
@@ -142,10 +144,12 @@ public class ShipmozoShipmentService {
 
                 HttpEntity<Map<String, Object>> req = new HttpEntity<>(body, headers);
 
-                ResponseEntity<Map> res = rest.postForEntity(
+                ResponseEntity<Map<String, Object>> res = rest.exchange(
                                 baseUrl + "/auto-assign-order",
+                                org.springframework.http.HttpMethod.POST,
                                 req,
-                                Map.class);
+                                new org.springframework.core.ParameterizedTypeReference<Map<String, Object>>() {
+                                });
 
                 return res.getBody();
         }
@@ -160,11 +164,12 @@ public class ShipmozoShipmentService {
 
                 HttpEntity<String> req = new HttpEntity<>(headers);
 
-                ResponseEntity<Map> res = rest.exchange(
+                ResponseEntity<Map<String, Object>> res = rest.exchange(
                                 baseUrl + "/get-order-detail/" + orderId,
                                 org.springframework.http.HttpMethod.GET,
                                 req,
-                                Map.class);
+                                new org.springframework.core.ParameterizedTypeReference<Map<String, Object>>() {
+                                });
 
                 return res.getBody();
         }

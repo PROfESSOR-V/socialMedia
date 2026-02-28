@@ -36,8 +36,7 @@ public class SpringSecurity {
                                                                 "/api/products/{id}",
                                                                 "/api/categories",
                                                                 "/api/payments/webhook",
-                                                                "/health",
-                                                                "/api/upload")
+                                                                "/health")
                                                 .permitAll()
 
                                                 // AUTHENTICATED ENDPOINTS

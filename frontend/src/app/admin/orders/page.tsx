@@ -6,6 +6,7 @@ import { useStore } from "@/store/useStore";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { formatPrice } from "@/lib/utils";
+import apiClient from "@/lib/apiClient";
 
 interface OrderData {
   id: string;
@@ -40,13 +41,8 @@ export default function AdminOrdersPage() {
       setLoading(true);
       setError(null);
       
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL || "https://socialmedia-0qzd.onrender.com";
-
-      const ordersRes = await fetch(`${baseUrl}/api/orders/admin/all`, { headers: { Authorization: `Bearer ${token}` } });
-
-      if (!ordersRes.ok) throw new Error("Failed to fetch data");
-
-      const ordersData = await ordersRes.json();
+      const ordersRes = await apiClient.get('/api/orders/admin/all');
+      const ordersData = ordersRes.data;
 
       if (ordersData.success) {
         const orderList = ordersData.data || [];
@@ -67,36 +63,20 @@ export default function AdminOrdersPage() {
 
   const handlePushRetry = async (orderId: string) => {
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL || "https://socialmedia-0qzd.onrender.com";
-      const res = await fetch(`${baseUrl}/api/orders/${orderId}/ship/retry`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.message || "Retry failed");
-      }
+      await apiClient.post(`/api/orders/${orderId}/ship/retry`);
       await fetchData(); 
     } catch(err: any) {
-      alert("Failed to retry push: " + err.message);
+      alert("Failed to retry push: " + (err.response?.data?.message || err.message));
       console.error(err);
     }
   };
 
   const handleFetchAwb = async (orderId: string) => {
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL || "https://socialmedia-0qzd.onrender.com";
-      const res = await fetch(`${baseUrl}/api/orders/${orderId}/fetch-awb`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.message || "Fetch AWB failed");
-      }
+      await apiClient.post(`/api/orders/${orderId}/fetch-awb`);
       await fetchData(); 
     } catch(err: any) {
-      alert(err.message || "Failed to fetch AWB. Please ensure you assigned a courier & pickup location on Shipmozo dashboard.");
+      alert(err.response?.data?.message || err.message || "Failed to fetch AWB. Please ensure you assigned a courier & pickup location on Shipmozo dashboard.");
       console.error(err);
     }
   };
@@ -104,7 +84,7 @@ export default function AdminOrdersPage() {
   useEffect(() => {
     if (!_hasHydrated) return;
 
-    if (!token || user?.role !== "ADMIN") {
+    if (!user || user?.role !== "ADMIN") {
       router.push("/login");
       return;
     }

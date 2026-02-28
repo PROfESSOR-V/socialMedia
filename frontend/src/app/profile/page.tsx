@@ -38,7 +38,7 @@ export default function ProfilePage() {
   const [addresses, setAddresses] = useState<Address[]>([]);
 
   useEffect(() => {
-    if (!token || !user) {
+    if (!user) {
       router.push("/login");
       return;
     }

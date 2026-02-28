@@ -11,7 +11,7 @@ import Image from "next/image";
 import apiClient from "@/lib/apiClient";
 
 export default function ProductGrid() {
-  const { addToCart, token, setAuthModalOpen, cachedProducts, setCachedProducts } = useStore();
+  const { addToCart, user, setAuthModalOpen, cachedProducts, setCachedProducts } = useStore();
   const [products, setProducts] = useState<any[]>((cachedProducts || []).slice(0, 8));
   const router = useRouter();
 
@@ -58,7 +58,7 @@ export default function ProductGrid() {
               size="icon"
               className="absolute bottom-4 right-4 translate-y-12 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 rounded-full shadow-lg"
               onClick={() => {
-                if (!token) {
+                if (!user) {
                   setAuthModalOpen(true);
                   return;
                 }

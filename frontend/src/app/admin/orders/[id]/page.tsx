@@ -6,6 +6,7 @@ import Link from "next/link";
 import { ChevronLeft, Package, CheckCircle2, Factory, Truck, MapPin, XCircle, AlertCircle, RefreshCw, User as UserIcon, Phone, Mail } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useStore } from "@/store/useStore";
+import apiClient from "@/lib/apiClient";
 
 interface OrderItem {
   productId: string;
@@ -64,19 +65,10 @@ export default function AdminOrderDetailsPage() {
       setLoading(true);
       setError(null);
       
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL || "https://socialmedia-0qzd.onrender.com";
-
       // 1. Fetch Order (admin endpoint equivalent)
-      const orderRes = await fetch(`${baseUrl}/api/orders/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const orderRes = await apiClient.get(`/api/orders/${id}`);
 
-      if (!orderRes.ok) {
-        if (orderRes.status === 404) throw new Error("Order not found");
-        throw new Error("Failed to fetch order details");
-      }
-
-      const orderData = await orderRes.json();
+      const orderData = orderRes.data;
       
       if (!orderData.success) {
         throw new Error(orderData.message || "Failed to parse order data");
@@ -87,7 +79,8 @@ export default function AdminOrderDetailsPage() {
 
     } catch (err: any) {
       console.error("Error fetching admin order:", err);
-      setError(err.message || "An unexpected error occurred.");
+      if (err.response?.status === 404) setError("Order not found");
+      else setError(err.response?.data?.message || err.message || "An unexpected error occurred.");
     } finally {
       setLoading(false);
     }
@@ -99,22 +92,13 @@ export default function AdminOrderDetailsPage() {
     try {
       setRetrying(true);
       setError(null);
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL || "https://socialmedia-0qzd.onrender.com";
-      const res = await fetch(`${baseUrl}/api/orders/${id}/ship/retry`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` }
-      });
-
-      if (!res.ok) {
-        const errData = await res.json();
-        throw new Error(errData.message || "Failed to retry shipment");
-      }
+      await apiClient.post(`/api/orders/${id}/ship/retry`);
 
       await fetchOrderAndCustomer(); // Refresh the data
       alert("Shipment pushed successfully!");
     } catch (err: any) {
       console.error("Retry Shipment Error:", err);
-      alert(err.message || "An error occurred while retrying shipment");
+      alert(err.response?.data?.message || err.message || "An error occurred while retrying shipment");
     } finally {
       setRetrying(false);
     }
@@ -123,7 +107,7 @@ export default function AdminOrderDetailsPage() {
   useEffect(() => {
     if (!_hasHydrated) return;
 
-    if (!token || authUser?.role !== "ADMIN") {
+    if (!authUser || authUser?.role !== "ADMIN") {
       router.push("/login");
       return;
     }

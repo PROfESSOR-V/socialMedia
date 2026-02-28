@@ -11,7 +11,7 @@ import Image from "next/image";
 import apiClient from "@/lib/apiClient";
 
 export default function ProductSlider() {
-  const { addToCart, token, setAuthModalOpen } = useStore();
+  const { addToCart, user, setAuthModalOpen } = useStore();
   const [products, setProducts] = useState<any[]>([]);
   const router = useRouter();
 
@@ -67,7 +67,7 @@ export default function ProductSlider() {
                   size="icon"
                   className="absolute bottom-4 right-4 translate-y-12 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 rounded-full shadow-lg"
                   onClick={() => {
-                    if (!token) {
+                    if (!user) {
                       setAuthModalOpen(true);
                       return;
                     }

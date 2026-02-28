@@ -5,6 +5,7 @@ import { useStore } from "@/store/useStore";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Eye, Search, AlertCircle, RefreshCw } from "lucide-react";
+import apiClient from "@/lib/apiClient";
 
 interface Address {
   name: string;
@@ -40,17 +41,9 @@ export default function AdminUsersPage() {
       setIsLoading(true);
       setError(null);
       
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "https://socialmedia-0qzd.onrender.com"}/api/user`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await apiClient.get('/api/user');
+      const data = response.data;
 
-      if (!response.ok) {
-        throw new Error("Failed to fetch users");
-      }
-
-      const data = await response.json();
       if (data.success) {
         setUsers(data.data);
       } else {
@@ -67,7 +60,7 @@ export default function AdminUsersPage() {
   useEffect(() => {
     if (!_hasHydrated) return;
 
-    if (!token || user?.role !== "ADMIN") {
+    if (!user || user?.role !== "ADMIN") {
       router.push("/login");
       return;
     }

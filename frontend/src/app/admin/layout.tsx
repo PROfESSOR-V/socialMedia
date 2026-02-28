@@ -27,7 +27,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     if (!_hasHydrated) return;
 
     // Basic frontend auth check
-    if (!token || !user) {
+    if (!user) {
       router.push("/login");
     } else if (user.role !== "ADMIN") {
       router.push("/");
