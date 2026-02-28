@@ -1,6 +1,7 @@
 package com.professor.socialMedia.repository;
 
 import com.professor.socialMedia.entity.Order;
+import com.professor.socialMedia.entity.ShipmentStatus;
 import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
@@ -13,8 +14,8 @@ public interface OrderRepository extends MongoRepository<Order, ObjectId> {
 
     Optional<Order> findByIdAndUserId(ObjectId orderId, ObjectId userId);
 
-    Optional<Order> findByAwb(String awb);
+    Optional<Order> findByShipmentAwb(String awb);
 
-    List<Order> findByTrackingStatusNot(String trackingStatus);
+    List<Order> findByShipmentStatusNot(ShipmentStatus shipmentStatus);
 
 }
