@@ -190,7 +190,7 @@ public class OrderService {
         Order order = findById(orderId);
 
         if (order.getAwb() == null || order.getAwb().isEmpty()) {
-            throw new RuntimeException("Wait for shipment to be picked up. No AWB assigned yet.");
+            return order; // Return unchanged as shipment hasn't started yet
         }
 
         try {

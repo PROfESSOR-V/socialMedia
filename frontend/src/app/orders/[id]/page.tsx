@@ -208,7 +208,7 @@ export default function OrderDetailsPage() {
                   <RefreshCw className={cn("mr-2 h-4 w-4", refreshing && "animate-spin")} />
                   Refresh
                 </Button>
-              ) : (!isCancelled && order.awb) ? (
+              ) : (!isCancelled) ? (
                 <Button variant="outline" size="sm" onClick={handleRefreshTracking} disabled={refreshing}>
                   <RefreshCw className={cn("mr-2 h-4 w-4", refreshing && "animate-spin")} />
                   Refresh

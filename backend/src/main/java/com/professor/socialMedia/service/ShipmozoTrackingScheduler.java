@@ -19,7 +19,8 @@ public class ShipmozoTrackingScheduler {
     @Autowired
     private ShipmozoTrackingService trackingService;
 
-    @Scheduled(fixedDelay = 30 * 60 * 1000) // every 30 minutes
+    // @Scheduled(fixedDelay = 30 * 60 * 1000) // every 30 minutes (Disabled by user
+    // request)
     public void updateTrackingStatuses() {
 
         List<Order> activeOrders = orderRepository.findByTrackingStatusNot("DELIVERED");
