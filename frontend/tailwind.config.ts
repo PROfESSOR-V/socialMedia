@@ -14,8 +14,8 @@ const config: Config = {
         accent: "#D4AF37", // Gold
       },
       fontFamily: {
-        sans: ["var(--font-inter)"],
-        serif: ["var(--font-cinzel)"],
+        sans: ["var(--font-inter)", "sans-serif"],
+        serif: ["var(--font-dm-sans)", "sans-serif"],
       },
     },
   },

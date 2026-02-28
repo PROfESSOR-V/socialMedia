@@ -2,8 +2,8 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { X, Search, ShoppingBag, User, Heart, ChevronRight } from "lucide-react";
-import { useEffect } from "react";
+import { ChevronDown } from "lucide-react";
+import { useState } from "react";
 import { useStore } from "@/store/useStore";
 
 interface MobileMenuProps {
@@ -11,137 +11,160 @@ interface MobileMenuProps {
   onClose: () => void;
 }
 
-const menuVariants = {
-  closed: {
-    x: "-100%",
-    transition: {
-      type: "spring",
-      stiffness: 400,
-      damping: 40,
-    },
-  },
-  open: {
-    x: "0%",
-    transition: {
-      type: "spring",
-      stiffness: 400,
-      damping: 40,
-    },
-  },
-};
-
-const linkVariants = {
-  closed: { x: -20, opacity: 0 },
-  open: (i: number) => ({
-    x: 0,
-    opacity: 1,
-    transition: {
-      delay: i * 0.1,
-      duration: 0.4,
-    },
-  }),
-};
-
 export default function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
   const { user } = useStore();
-  // Prevent body scroll when menu is open
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "unset";
-    }
-    return () => {
-      document.body.style.overflow = "unset";
-    };
-  }, [isOpen]);
+  const [openSection, setOpenSection] = useState<string | null>(null);
 
-  const links = [
-    { name: "Home", href: "/" },
-    { name: "About", href: "/about" },
-    { name: "Shop", href: "/products" },
-    { name: "Blog", href: "/blog" },
-    { name: "Contact", href: "/contact" },
-  ];
+  const toggleSection = (section: string) => {
+    setOpenSection(openSection === section ? null : section);
+  };
+
+  const menuVariants = {
+    closed: {
+      opacity: 0,
+      y: -10,
+      transition: { duration: 0.2 }
+    },
+    open: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.3 }
+    }
+  };
 
   return (
     <AnimatePresence>
       {isOpen && (
-        <>
-          {/* Backdrop */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="fixed inset-0 bg-black/50 z-[60] backdrop-blur-sm lg:hidden"
-          />
+        <motion.div
+          variants={menuVariants}
+          initial="closed"
+          animate="open"
+          exit="closed"
+          className="absolute top-[84px] left-0 right-0 bg-white rounded-xl shadow-xl border border-black/5 z-40 overflow-hidden lg:hidden"
+        >
+          <div className="flex flex-col py-2">
+            <Link 
+              href="/" 
+              onClick={onClose}
+              className="px-6 py-4 text-[15px] font-medium text-zinc-800 hover:bg-zinc-50 transition-colors border-b border-zinc-50"
+            >
+              Home
+            </Link>
+            
+            <Link 
+              href="/about" 
+              onClick={onClose}
+              className="px-6 py-4 text-[15px] font-medium text-zinc-800 hover:bg-zinc-50 transition-colors border-b border-zinc-50"
+            >
+              About
+            </Link>
 
-          {/* Menu Drawer */}
-          <motion.div
-            variants={menuVariants}
-            initial="closed"
-            animate="open"
-            exit="closed"
-            className="fixed top-0 left-0 bottom-0 w-[85%] max-w-[320px] bg-white z-[70] shadow-2xl flex flex-col lg:hidden"
-          >
-            {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b border-zinc-100">
-              <span className="font-serif text-2xl font-medium tracking-tight">AÚRELYÑ</span>
-              <button
-                onClick={onClose}
-                className="p-2 -mr-2 text-zinc-500 hover:text-black transition-colors"
+            {/* Shop Accordion */}
+            <div className="border-b border-zinc-50">
+              <button 
+                onClick={() => toggleSection('shop')}
+                className="w-full flex items-center justify-between px-6 py-4 text-[15px] font-medium text-zinc-800 hover:bg-zinc-50 transition-colors"
               >
-                <X className="w-6 h-6" />
+                Shop
+                <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${openSection === 'shop' ? 'rotate-180' : ''}`} />
               </button>
-            </div>
-
-            {/* Links */}
-            <div className="flex-1 overflow-y-auto py-8 px-6 flex flex-col gap-6">
-              <nav className="flex flex-col gap-4">
-                {links.map((link, i) => (
-                  <motion.div
-                    key={link.name}
-                    custom={i}
-                    variants={linkVariants}
-                    initial="closed"
-                    animate="open"
+              <AnimatePresence>
+                {openSection === 'shop' && (
+                  <motion.div 
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    className="overflow-hidden bg-zinc-50/50"
                   >
-                    <Link
-                      href={link.href}
-                      onClick={onClose}
-                      className="flex items-center justify-between text-lg font-medium text-zinc-800 py-2 border-b border-transparent hover:border-zinc-100 transition-colors"
-                    >
-                      {link.name}
-                      <ChevronRight className="w-4 h-4 text-zinc-400" />
-                    </Link>
+                    <div className="flex flex-col py-2 px-8">
+                      <Link href="/products" onClick={onClose} className="py-3 text-sm text-zinc-600 border-b border-zinc-100 last:border-0 hover:text-black">All Products</Link>
+                      <Link href="/products?category=Face Serum" onClick={onClose} className="py-3 text-sm text-zinc-600 border-b border-zinc-100 last:border-0 hover:text-black">Face Serum</Link>
+                      <Link href="/products?category=Cream" onClick={onClose} className="py-3 text-sm text-zinc-600 border-b border-zinc-100 last:border-0 hover:text-black">Cream</Link>
+                      <Link href="/products?category=Body Lotion" onClick={onClose} className="py-3 text-sm text-zinc-600 border-b border-zinc-100 last:border-0 hover:text-black">Body Lotion</Link>
+                    </div>
                   </motion.div>
-                ))}
-              </nav>
-
-              {/* Mobile Actions */}
-              <div className="mt-8 grid grid-cols-2 gap-4">
-                <Link 
-                  href={user ? (user.role === "ADMIN" ? "/admin" : "/profile") : "/login"}
-                  onClick={onClose}
-                  className="flex items-center justify-center gap-2 py-3 px-4 rounded-lg bg-zinc-100 text-sm font-medium hover:bg-zinc-200 transition-colors"
-                >
-                  <User className="w-4 h-4" /> {user ? "Account" : "Sign In"}
-                </Link>
-                <button className="flex items-center justify-center gap-2 py-3 px-4 rounded-lg bg-zinc-100 text-sm font-medium hover:bg-zinc-200 transition-colors">
-                  <Heart className="w-4 h-4" /> Wishlist
-                </button>
-              </div>
+                )}
+              </AnimatePresence>
             </div>
 
-            {/* Footer */}
-            <div className="p-6 border-t border-zinc-100 bg-zinc-50">
-              <p className="text-xs text-zinc-400 text-center">
-                © 2024 AÚRELYÑ. All rights reserved.
-              </p>
+            {/* Account Accordion */}
+            <div className="border-b border-zinc-50">
+              <button 
+                onClick={() => toggleSection('account')}
+                className="w-full flex items-center justify-between px-6 py-4 text-[15px] font-medium text-zinc-800 hover:bg-zinc-50 transition-colors"
+              >
+                Account
+                <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${openSection === 'account' ? 'rotate-180' : ''}`} />
+              </button>
+              <AnimatePresence>
+                {openSection === 'account' && (
+                  <motion.div 
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    className="overflow-hidden bg-zinc-50/50"
+                  >
+                    <div className="flex flex-col py-2 px-8">
+                      {user ? (
+                        <>
+                          <Link href={user.role === "ADMIN" ? "/admin" : "/profile"} onClick={onClose} className="py-3 text-sm text-zinc-600 border-b border-zinc-100 last:border-0 hover:text-black">Profile</Link>
+                          <Link href="/orders" onClick={onClose} className="py-3 text-sm text-zinc-600 border-b border-zinc-100 last:border-0 hover:text-black">Orders</Link>
+                        </>
+                      ) : (
+                        <>
+                          <Link href="/login" onClick={onClose} className="py-3 text-sm text-zinc-600 border-b border-zinc-100 last:border-0 hover:text-black">Login</Link>
+                          <Link href="/signup" onClick={onClose} className="py-3 text-sm text-zinc-600 border-b border-zinc-100 last:border-0 hover:text-black">Sign Up</Link>
+                        </>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
-          </motion.div>
-        </>
+
+            {/* Support Accordion */}
+            <div className="border-b border-zinc-50">
+              <button 
+                onClick={() => toggleSection('support')}
+                className="w-full flex items-center justify-between px-6 py-4 text-[15px] font-medium text-zinc-800 hover:bg-zinc-50 transition-colors"
+              >
+                Support
+                <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${openSection === 'support' ? 'rotate-180' : ''}`} />
+              </button>
+              <AnimatePresence>
+                {openSection === 'support' && (
+                  <motion.div 
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    className="overflow-hidden bg-zinc-50/50"
+                  >
+                    <div className="flex flex-col py-2 px-8">
+                      <button 
+                        onClick={() => {
+                          onClose();
+                          window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+                        }} 
+                        className="py-3 text-sm text-zinc-600 text-left border-b border-zinc-100 last:border-0 hover:text-black"
+                      >
+                        Contact
+                      </button>
+                      <Link href="/faq" onClick={onClose} className="py-3 text-sm text-zinc-600 border-b border-zinc-100 last:border-0 hover:text-black">FAQ</Link>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            <Link 
+              href="/blog" 
+              onClick={onClose}
+              className="px-6 py-4 text-[15px] font-medium text-zinc-800 hover:bg-zinc-50 transition-colors"
+            >
+              Blog
+            </Link>
+          </div>
+        </motion.div>
       )}
     </AnimatePresence>
   );

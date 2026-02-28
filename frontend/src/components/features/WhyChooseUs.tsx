@@ -2,24 +2,24 @@
 
 import { motion } from "framer-motion";
 import Image from "next/image";
-import { Leaf, Droplets, HeartHandshake, Feather, ScanFace, Heart } from "lucide-react";
+import { Leaf, Recycle, HeartHandshake, Feather, ScanFace, Heart } from "lucide-react";
 
 export default function WhyChooseUs() {
   return (
-    <section className="py-24 bg-[#f2f2ef] overflow-hidden">
+    <section className="pt-8 pb-12 md:py-24 bg-[#f2f2ef] overflow-hidden">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
-        <div className="text-center mb-16">
+        <div className="max-w-[600px] mx-auto text-center mb-8 md:mb-16">
           <motion.h2 
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="font-serif text-4xl md:text-5xl text-zinc-900 leading-tight"
+            className="font-serif text-[32px] md:text-5xl text-zinc-900 leading-[1.2] md:leading-tight"
           >
             Why Your Skin <br />
-            <span className="italic text-zinc-600">Deserves the Best</span>
+            <span className="italic text-zinc-600 font-light md:font-normal">Deserves the Best</span>
           </motion.h2>
         </div>
 
@@ -72,25 +72,29 @@ export default function WhyChooseUs() {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              className="bg-[#e8e8e1] rounded-3xl p-6 md:p-10 flex flex-row items-center gap-2 md:gap-6 relative overflow-hidden flex-1 min-h-[200px] md:min-h-[400px]"
+              className="bg-[#e8e8e1] rounded-[32px] p-8 md:p-10 flex flex-row items-center gap-2 md:gap-6 relative overflow-hidden flex-1 min-h-[320px] sm:min-h-[340px] md:min-h-[400px]"
             >
-               <div className="flex-1 z-10 w-full">
-                  <div className="mb-2 md:mb-6">
-                     <Droplets className="w-6 h-6 md:w-10 md:h-10 text-zinc-800" />
+               <div className="flex-1 z-10 w-full mb-auto mt-0 pt-0">
+                  <div className="mb-4 md:mb-6">
+                     <Recycle className="w-6 h-6 md:w-10 md:h-10 text-zinc-900 flex-shrink-0" strokeWidth={1.5} />
                   </div>
-                  <h3 className="font-serif text-2xl md:text-4xl lg:text-5xl text-zinc-900 mb-1 md:mb-4 leading-[1.1]">
-                    Eco-Friendly <br /> Packaging
+                  <h3 className="font-serif text-[32px] md:text-4xl lg:text-5xl text-zinc-900 mb-4 md:mb-4 leading-[1.1]">
+                    Eco-Friendly <br />
+                    <span className="italic font-light text-zinc-800">Packaging</span>
                   </h3>
-                  <p className="text-zinc-700 text-xs md:text-base leading-relaxed max-w-[200px] font-medium hidden xs:block">
-                    Eco-friendly materials designed to care for the planet as much as your skin.
+                  <p className="text-[#5a5a5a] text-[13px] md:text-base leading-[1.6] max-w-[180px] sm:max-w-[220px] font-normal">
+                    Eco-friendly materials <br className="block md:hidden"/>
+                    designed to care <br className="block md:hidden"/>
+                    for the planet as <br className="block md:hidden"/>
+                    much as your skin.
                   </p>
                </div>
-               <div className="w-24 h-32 md:w-40 md:h-72 relative flex-shrink-0 self-center md:self-auto">
+               <div className="w-[100px] h-[240px] md:w-40 md:h-72 absolute right-0 bottom-[-20px] md:relative md:self-auto md:right-auto md:bottom-auto">
                   <Image 
                     src="/assets/1000334012.png" 
                     alt="Eco Friendly Bottle" 
                     fill 
-                    className="object-contain"
+                    className="object-contain object-bottom md:object-center"
                   />
                </div>
             </motion.div>
@@ -101,36 +105,36 @@ export default function WhyChooseUs() {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.4 }}
-              className="bg-[#3e4c3d] rounded-3xl p-6 md:p-10 flex flex-row items-center gap-2 md:gap-6 relative overflow-hidden flex-1 min-h-[200px] md:min-h-[400px] text-white"
+              className="bg-[#414d3f] rounded-[32px] p-8 md:p-10 flex flex-row items-center gap-2 md:gap-6 relative overflow-hidden flex-1 min-h-[320px] sm:min-h-[340px] md:min-h-[400px] text-white"
             >
-               <div className="w-24 h-full relative flex-shrink-0 min-h-[160px] md:min-h-[220px]">
+               <div className="w-[140px] sm:w-[160px] h-[300px] absolute left-[-30px] bottom-[-20px] md:relative md:w-40 md:h-[220px] md:flex-shrink-0 md:left-auto md:bottom-auto">
                   <Image 
                     src="/assets/1000334013.png" 
                     alt="Natural Ingredients" 
                     fill 
-                    className="object-contain object-left md:object-center"
+                    className="object-contain object-left-bottom md:object-center"
                   />
                </div>
-               <div className="flex-1 z-10 pl-2 md:pl-0">
-                   <div className="mb-2 md:mb-6">
-                     <Leaf className="w-6 h-6 md:w-10 md:h-10 text-white/90" />
+               <div className="flex-1 z-10 pl-[100px] sm:pl-[120px] md:pl-0 flex flex-col justify-start h-full pt-1">
+                   <div className="mb-4 md:mb-6">
+                     <Leaf className="w-6 h-6 md:w-10 md:h-10 text-white flex-shrink-0" strokeWidth={1.5} />
                   </div>
-                  <h3 className="font-serif text-2xl md:text-4xl lg:text-5xl mb-2 md:mb-4 leading-[1.1]">
+                  <h3 className="font-serif text-[32px] md:text-4xl lg:text-5xl mb-4 md:mb-4 leading-[1.1]">
                     100% Natural <br />
-                    <span className="italic font-light">100% You</span>
+                    <span className="italic font-light text-white/90">100% You</span>
                   </h3>
-                   <div className="space-y-1 md:space-y-3">
-                      <div className="flex items-center gap-2">
-                        <Feather className="w-3 h-3 md:w-5 md:h-5 text-white/70" />
-                        <span className="text-xs md:text-base font-medium text-white/90">No Harsh Chemicals</span>
+                   <div className="space-y-3 pl-1">
+                      <div className="flex items-center gap-2.5">
+                        <Feather className="w-4 h-4 md:w-5 md:h-5 text-white" strokeWidth={2} />
+                        <span className="text-[14px] md:text-base font-medium text-white/95">No Harsh Chemicals</span>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <ScanFace className="w-3 h-3 md:w-5 md:h-5 text-white/70" />
-                         <span className="text-xs md:text-base font-medium text-white/90">Plant-Based Goodness</span>
+                      <div className="flex items-center gap-2.5">
+                        <Leaf className="w-4 h-4 md:w-5 md:h-5 text-white" strokeWidth={2} />
+                         <span className="text-[14px] md:text-base font-medium text-white/95">Plant-Based Goodness</span>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Heart className="w-3 h-3 md:w-5 md:h-5 text-white/70" />
-                         <span className="text-xs md:text-base font-medium text-white/90">Ethically Sourced</span>
+                      <div className="flex items-center gap-2.5">
+                        <HeartHandshake className="w-4 h-4 md:w-5 md:h-5 text-white" strokeWidth={2} />
+                         <span className="text-[14px] md:text-base font-medium text-white/95">Ethically Sourced</span>
                       </div>
                    </div>
                </div>

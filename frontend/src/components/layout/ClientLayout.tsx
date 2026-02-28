@@ -17,14 +17,20 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
 
   return (
     <>
-      <Header />
+      <div className="page-content">
+        <Header />
+        <PageTransition>
+          <main className="min-h-screen">{children}</main>
+        </PageTransition>
+      </div>
+
       <CartDrawer />
       <AuthModal />
       <MessageModal />
-      <PageTransition>
-        <main className="min-h-screen">{children}</main>
-      </PageTransition>
-      <Footer />
+
+      <section className="footer-reveal">
+        <Footer />
+      </section>
     </>
   );
 }

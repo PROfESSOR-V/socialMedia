@@ -5,14 +5,14 @@ import { motion } from "framer-motion";
 
 export default function AestheticText() {
   return (
-    <section className="py-16 md:py-24 overflow-hidden">
+    <section className="py-8 md:pt-12 md:pb-16 overflow-hidden">
       <div className="container mx-auto px-4 text-center">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
-          className="font-serif text-3xl md:text-5xl lg:text-6xl text-zinc-800 leading-tight md:leading-snug tracking-tight"
+          className="font-serif italic font-bold text-3xl md:text-5xl lg:text-6xl text-zinc-800 leading-tight md:leading-snug tracking-tight"
         >
           <span className="inline-block align-middle">Refresh your skin,</span>{" "}
           <span className="inline-block align-middle mx-2 relative w-16 h-16 md:w-20 md:h-20 lg:w-24 lg:h-24 rounded-lg overflow-hidden transform -rotate-6 border-2 border-white shadow-lg">

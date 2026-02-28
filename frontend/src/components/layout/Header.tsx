@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { ShoppingBag, Search, User, Heart, Globe, Menu, Package } from "lucide-react";
+import { ShoppingBag, Search, User, Heart, Globe, Menu, Package, X } from "lucide-react";
 import { useStore } from "@/store/useStore";
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
@@ -57,12 +57,12 @@ export default function Header() {
   return (
     <div 
         className={cn(
-            "fixed top-6 left-0 right-0 z-50 flex justify-center px-4 sm:px-8 transition-transform duration-500",
+            "fixed top-6 left-0 right-0 z-50 flex flex-col items-center px-4 sm:px-8 transition-transform duration-500",
             isVisible ? "translate-y-0" : "-translate-y-[150%]"
         )}
     >
       <header
-        className="w-full h-[72px] bg-white rounded-md shadow-sm border border-black/5 flex items-center justify-between px-6 transition-all duration-300"
+        className="w-full h-[72px] bg-white rounded-md shadow-sm border border-black/5 flex items-center justify-between px-4 lg:px-6 transition-all duration-300 relative z-50"
       >
         {/* Left Nav */}
         <nav className="hidden lg:flex items-center gap-6 h-full">
@@ -137,31 +137,19 @@ export default function Header() {
           </Link>
         </nav>
 
-        {/* Center Logo */}
+        {/* Center Logo (Desktop) / Left Logo (Mobile) */}
         <Link 
           href="/" 
-          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 font-serif text-2xl font-medium tracking-tight text-black"
+          className="lg:absolute lg:left-1/2 lg:top-1/2 lg:-translate-x-1/2 lg:-translate-y-1/2 font-serif text-2xl font-medium tracking-tight text-black"
         >
           AÚRELYÑ
         </Link>
         
-        {/* Mobile Menu Icon */}
-        <div className="lg:hidden flex items-center">
-          <button 
-            onClick={() => setIsMobileMenuOpen(true)}
-            className="p-2 -ml-2 text-zinc-800 hover:text-black transition-colors"
-          >
-            <Menu className="w-6 h-6" />
-          </button>
-        </div>
-
-        <MobileMenu isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} />
-
         {/* Right Actions */}
-        <div className="flex items-center gap-3 sm:gap-4 text-black/80">
-          <button className="hover:text-black transition-colors">
+        <div className="flex items-center gap-2 sm:gap-4 text-black/80">
+          <button className="hover:text-black transition-colors rounded-sm overflow-hidden hidden sm:block">
             {/* India Flag SVG */}
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 225 150" className="w-[18px] h-auto shadow-sm rounded-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 225 150" className="w-[18px] h-auto shadow-sm">
               <rect width="225" height="150" fill="#f93"/>
               <rect width="225" height="50" y="50" fill="#fff"/>
               <rect width="225" height="50" y="100" fill="#128807"/>
@@ -186,21 +174,19 @@ export default function Header() {
             </svg>
           </button>
           
-          {user ? (
-            <Link href={user.role === "ADMIN" ? "/admin" : "/profile"} className="hover:text-black transition-colors hidden sm:block">
-              <User className="h-4 w-4" />
-            </Link>
-          ) : (
-            <Link href="/login" className="hover:text-black transition-colors hidden sm:block">
-              <User className="h-4 w-4" />
-            </Link>
-          )}
+          <Link href={user ? (user.role === "ADMIN" ? "/admin" : "/profile") : "/login"} className="hover:text-black transition-colors">
+            <User className="h-4 w-4" />
+          </Link>
           
           <button className="hover:text-black transition-colors">
             <Search className="h-4 w-4" />
           </button>
+
+          <button className="hover:text-black transition-colors lg:hidden">
+            <Heart className="h-4 w-4" />
+          </button>
           
-           <Link href="/orders" className="hover:text-black transition-colors hidden sm:block">
+          <Link href="/orders" className="hover:text-black transition-colors">
             <Package className="h-4 w-4" />
           </Link>
 
@@ -219,8 +205,21 @@ export default function Header() {
               )}
             </AnimatePresence>
           </button>
+
+          {/* Mobile Menu Toggle Icon */}
+          <div className="lg:hidden flex items-center ml-1">
+            <button 
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="p-1.5 bg-zinc-50 border border-black/5 rounded text-zinc-800 hover:text-black hover:bg-zinc-100 transition-colors"
+            >
+              {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
+          </div>
         </div>
       </header>
+
+      {/* Place MobileMenu outside header so it can absolute-position beneath it */}
+      <MobileMenu isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} />
     </div>
   );
 }

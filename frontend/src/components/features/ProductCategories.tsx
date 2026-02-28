@@ -58,7 +58,7 @@ export default function ProductCategories({ initialProducts = [], initialCategor
       : products.filter((p) => p.category?.name === activeCategory || p.categoryId === activeCategory || p.category === activeCategory);
 
   return (
-    <section className="py-16 md:py-24">
+    <section className="pt-8 pb-16 md:pt-12 md:pb-24">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
            initial={{ opacity: 0, y: 20 }}
@@ -85,7 +85,7 @@ export default function ProductCategories({ initialProducts = [], initialCategor
            </div>
          </motion.div>
 
-        <motion.div layout className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
+        <motion.div layout className="grid grid-cols-1 gap-6 sm:gap-8 sm:grid-cols-2 lg:grid-cols-4 max-w-[340px] sm:max-w-none mx-auto">
           <AnimatePresence mode="popLayout">
             {loading ? (
                <div className="col-span-full py-20 flex justify-center items-center">
@@ -102,7 +102,7 @@ export default function ProductCategories({ initialProducts = [], initialCategor
                 className="group cursor-pointer"
               >
                 <Link href={`/products/${product.id}`} className="block h-full">
-                    <div className="relative h-full bg-[#e8e8e1] overflow-hidden rounded-xl flex flex-col hover:shadow-md transition-shadow group">
+                    <div className="relative h-full bg-[#e8e8e1] overflow-hidden rounded-[20px] flex flex-col hover:shadow-md transition-shadow group">
                         <div className="relative aspect-[4/5] w-full bg-[#e8e8e1]">
                             {/* Main Image */}
                             <img
@@ -131,11 +131,11 @@ export default function ProductCategories({ initialProducts = [], initialCategor
                              </div>
                         </div>
 
-                        <div className="p-4 text-center mt-auto bg-[#e8e8e1] relative z-20">
-                            <h3 className="font-serif text-lg text-zinc-900 mb-1 group-hover:text-black/70 transition-colors">
+                        <div className="p-4 md:p-5 text-center mt-auto bg-[#e8e8e1] relative z-20">
+                            <h3 className="font-serif text-base md:text-lg text-zinc-900 mb-1 group-hover:text-black/70 transition-colors leading-tight line-clamp-2">
                                 {product.name}
                             </h3>
-                             <p className="text-sm text-zinc-600 mb-2 font-medium">
+                             <p className="text-sm md:text-sm text-zinc-600 mb-2 font-medium">
                                 Rs. {formatPrice(product.price)}
                              </p>
                         </div>
