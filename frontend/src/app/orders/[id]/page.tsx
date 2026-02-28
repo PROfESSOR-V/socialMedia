@@ -210,13 +210,6 @@ export default function OrderDetailsPage() {
               ) : null}
             </div>
 
-            {order.shipment?.awb && !isRefundFlow && !isCancelled && (
-               <div className="mb-6 p-4 bg-secondary/10 rounded-md border border-secondary text-sm flex flex-col sm:flex-row sm:gap-6 gap-2">
-                 <p><span className="text-muted-foreground mr-1">AWB:</span> <span className="font-medium tracking-wide">{order.shipment.awb}</span></p>
-                 <p><span className="text-muted-foreground mr-1">Courier:</span> <span className="font-medium">{order.shipment.courier || "Pending Assignment"}</span></p>
-                 <p className="sm:ml-auto"><span className="text-muted-foreground mr-1">Status:</span> <span className="font-semibold text-primary">{order.shipment.currentStatus}</span></p>
-               </div>
-            )}
 
             {isRefundFlow ? (
               <div className="relative pt-4 pb-8">
