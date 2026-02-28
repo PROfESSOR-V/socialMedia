@@ -52,6 +52,14 @@ export const api = {
     cancel: async (id: string) => {
       const { data } = await apiClient.post(`/api/orders/${id}/cancel`);
       return data?.data || data || null;
+    },
+    refreshTracking: async (id: string) => {
+      const { data } = await apiClient.get(`/api/orders/${id}/tracking/refresh`);
+      return data?.data || data || null;
+    },
+    refreshRefund: async (id: string) => {
+      const { data } = await apiClient.get(`/api/orders/${id}/refund/refresh`);
+      return data?.data || data || null;
     }
   },
   payments: {

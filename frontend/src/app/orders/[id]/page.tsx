@@ -5,7 +5,7 @@ import { api } from "@/lib/api";
 import { formatPrice, cn } from "@/lib/utils";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, Package, CheckCircle2, Factory, Truck, MapPin, XCircle } from "lucide-react";
+import { ChevronLeft, Package, CheckCircle2, Factory, Truck, MapPin, XCircle, RefreshCw } from "lucide-react";
 import { useParams } from "next/navigation";
 import Image from "next/image";
 
@@ -38,6 +38,7 @@ export default function OrderDetailsPage() {
   const id = params.id as string;
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     const fetchOrder = async () => {
@@ -52,6 +53,30 @@ export default function OrderDetailsPage() {
     };
     if (id) fetchOrder();
   }, [id]);
+
+  const handleRefreshTracking = async () => {
+    try {
+      setRefreshing(true);
+      const data = await api.orders.refreshTracking(id);
+      if (data) setOrder(data);
+    } catch (error) {
+      console.error("Failed to refresh tracking:", error);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  const handleRefreshRefund = async () => {
+    try {
+      setRefreshing(true);
+      const data = await api.orders.refreshRefund(id);
+      if (data) setOrder(data);
+    } catch (error) {
+      console.error("Failed to refresh refund:", error);
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -178,6 +203,17 @@ export default function OrderDetailsPage() {
               <h2 className="text-lg font-medium text-primary">
                 {isRefundFlow ? "Refund Tracking" : "Tracking"}
               </h2>
+              {isRefundFlow ? (
+                <Button variant="outline" size="sm" onClick={handleRefreshRefund} disabled={refreshing}>
+                  <RefreshCw className={cn("mr-2 h-4 w-4", refreshing && "animate-spin")} />
+                  Refresh
+                </Button>
+              ) : (!isCancelled && order.awb) ? (
+                <Button variant="outline" size="sm" onClick={handleRefreshTracking} disabled={refreshing}>
+                  <RefreshCw className={cn("mr-2 h-4 w-4", refreshing && "animate-spin")} />
+                  Refresh
+                </Button>
+              ) : null}
             </div>
 
             {order.awb && !isRefundFlow && !isCancelled && (

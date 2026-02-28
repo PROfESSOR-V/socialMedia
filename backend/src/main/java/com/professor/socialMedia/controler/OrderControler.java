@@ -156,4 +156,38 @@ public class OrderControler {
                                         ApiResponse.error(e.getMessage()));
                 }
         }
+
+        /**
+         * Refresh Tracking
+         */
+        @GetMapping("/{id}/tracking/refresh")
+        public ResponseEntity<?> refreshTracking(
+                        @AuthenticationPrincipal CustomUserDetail user,
+                        @PathVariable String id) {
+                try {
+                        Order refreshedOrder = orderService.refreshTracking(new ObjectId(id));
+                        OrderDto orderDto = orderMapper.mapOrder(refreshedOrder);
+                        return ResponseEntity.ok(ApiResponse.success("Tracking refreshed successfully", orderDto));
+                } catch (RuntimeException e) {
+                        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                                        ApiResponse.error(e.getMessage()));
+                }
+        }
+
+        /**
+         * Refresh Refund
+         */
+        @GetMapping("/{id}/refund/refresh")
+        public ResponseEntity<?> refreshRefund(
+                        @AuthenticationPrincipal CustomUserDetail user,
+                        @PathVariable String id) {
+                try {
+                        Order refreshedOrder = orderService.refreshRefund(new ObjectId(id));
+                        OrderDto orderDto = orderMapper.mapOrder(refreshedOrder);
+                        return ResponseEntity.ok(ApiResponse.success("Refund status refreshed successfully", orderDto));
+                } catch (RuntimeException e) {
+                        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                                        ApiResponse.error(e.getMessage()));
+                }
+        }
 }

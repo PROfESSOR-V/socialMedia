@@ -62,4 +62,48 @@ public class CashfreeService {
 
                 return response.getBody();
         }
+
+        public java.util.List<Map<String, Object>> getRefundsForOrder(String orderId) {
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.APPLICATION_JSON);
+                headers.set("x-client-id", clientId);
+                headers.set("x-client-secret", clientSecret);
+                headers.set("x-api-version", "2023-08-01");
+
+                HttpEntity<Void> request = new HttpEntity<>(headers);
+
+                try {
+                        ResponseEntity<java.util.List> response = restTemplate.exchange(
+                                        baseUrl + "/orders/" + orderId + "/refunds",
+                                        org.springframework.http.HttpMethod.GET,
+                                        request,
+                                        java.util.List.class);
+                        return (java.util.List<Map<String, Object>>) response.getBody();
+                } catch (Exception e) {
+                        System.err.println("Failed to get refunds for order " + orderId + ": " + e.getMessage());
+                        return null;
+                }
+        }
+
+        public Map<String, Object> getPaymentDetails(String cfPaymentId) {
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.APPLICATION_JSON);
+                headers.set("x-client-id", clientId);
+                headers.set("x-client-secret", clientSecret);
+                headers.set("x-api-version", "2023-08-01");
+
+                HttpEntity<Void> request = new HttpEntity<>(headers);
+
+                try {
+                        ResponseEntity<Map> response = restTemplate.exchange(
+                                        baseUrl + "/payments/" + cfPaymentId,
+                                        org.springframework.http.HttpMethod.GET,
+                                        request,
+                                        Map.class);
+                        return response.getBody();
+                } catch (Exception e) {
+                        System.err.println("Failed to get payment details for " + cfPaymentId + ": " + e.getMessage());
+                        return null;
+                }
+        }
 }

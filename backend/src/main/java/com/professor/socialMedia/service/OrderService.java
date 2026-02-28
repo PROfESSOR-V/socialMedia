@@ -23,7 +23,13 @@ public class OrderService {
     @Autowired
     private ProductRepository productRepository;
     @Autowired
+    private com.professor.socialMedia.repository.PaymentRepository paymentRepository;
+    @Autowired
     private ShipmozoShipmentService shipmozoShipmentService;
+    @Autowired
+    private ShipmozoTrackingService shipmozoTrackingService;
+    @Autowired
+    private CashfreeService cashfreeService;
 
     public Order createFromCart(ObjectId userId) {
         Cart cart = cartRepository.findByUserIdAndStatus(userId, CartStatus.ACTIVE)
@@ -178,5 +184,102 @@ public class OrderService {
         } catch (Exception e) {
             throw new RuntimeException("Failed to retry Shipmozo shipment: " + e.getMessage());
         }
+    }
+
+    public Order refreshTracking(ObjectId orderId) {
+        Order order = findById(orderId);
+
+        if (order.getAwb() == null || order.getAwb().isEmpty()) {
+            throw new RuntimeException("Wait for shipment to be picked up. No AWB assigned yet.");
+        }
+
+        try {
+            java.util.Map<String, Object> res = shipmozoTrackingService.track(order.getAwb());
+            if (res != null) {
+                String status = (String) res.get("current_status");
+                if (status != null) {
+                    order.setTrackingStatus(status);
+                    order.setTrackingData(res);
+
+                    try {
+                        String trackingJson = new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(res);
+                        String lowerJson = trackingJson.toLowerCase();
+
+                        if (lowerJson.contains("delivered") || lowerJson.contains("completed")) {
+                            order.setShipmentStatus(ShipmentStatus.DELIVERED);
+                            order.setStatus(OrderStatus.DELIVERED);
+                        } else if (lowerJson.contains("in transit") || lowerJson.contains("vehicle departed")) {
+                            order.setShipmentStatus(ShipmentStatus.IN_TRANSIT);
+                        } else if (lowerJson.contains("out for pickup") || lowerJson.contains("shipment picked up")) {
+                            order.setShipmentStatus(ShipmentStatus.PICKED_UP);
+                        } else if (lowerJson.contains("manifest") || lowerJson.contains("pickup scheduled")) {
+                            order.setShipmentStatus(ShipmentStatus.MANIFESTED);
+                        }
+                    } catch (Exception ex) {
+                        System.err.println("Failed to parse tracking JSON data for AWB: " + order.getAwb());
+                    }
+
+                    if ("DELIVERED".equalsIgnoreCase(status)) {
+                        order.setStatus(OrderStatus.DELIVERED);
+                        order.setShipmentStatus(ShipmentStatus.DELIVERED);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to track Shipmozo AWB " + order.getAwb() + ": " + e.getMessage());
+        }
+
+        return orderRepository.save(order);
+    }
+
+    public Order refreshRefund(ObjectId orderId) {
+        Order order = findById(orderId);
+
+        try {
+            com.professor.socialMedia.entity.Payment payment = paymentRepository
+                    .findByOrderIdAndStatus(orderId, com.professor.socialMedia.entity.PaymentStatus.SUCCESS)
+                    .orElseThrow(() -> new RuntimeException("No successful payment found for order."));
+
+            String cfPaymentId = payment.getProviderPaymentId();
+            if (cfPaymentId == null || cfPaymentId.isEmpty()) {
+                throw new RuntimeException("Provider payment ID is missing.");
+            }
+
+            java.util.Map<String, Object> paymentDetails = cashfreeService.getPaymentDetails(cfPaymentId);
+            if (paymentDetails == null || !paymentDetails.containsKey("order_id")) {
+                throw new RuntimeException("Could not fetch order ID from Cashfree");
+            }
+            String cashfreeOrderId = (String) paymentDetails.get("order_id");
+
+            java.util.List<java.util.Map<String, Object>> refunds = cashfreeService.getRefundsForOrder(cashfreeOrderId);
+            if (refunds != null && !refunds.isEmpty()) {
+                boolean hasSuccess = false;
+                boolean hasFailed = false;
+                String refundId = null;
+
+                for (java.util.Map<String, Object> r : refunds) {
+                    String status = (String) r.get("refund_status");
+                    refundId = (String) r.get("refund_id");
+                    if ("SUCCESS".equalsIgnoreCase(status)) {
+                        hasSuccess = true;
+                        break;
+                    } else if ("FAILED".equalsIgnoreCase(status)) {
+                        hasFailed = true;
+                    }
+                }
+
+                if (hasSuccess) {
+                    order.setPaymentStatus(PaymentStatus.REFUNDED);
+                    order.setRefundReferenceId(refundId);
+                    order.setRefundCompletedAt(java.time.Instant.now());
+                    order.setStatus(OrderStatus.REFUNDED);
+                } else if (hasFailed) {
+                    order.setPaymentStatus(PaymentStatus.REFUND_FAILED);
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to sync refund status: " + e.getMessage());
+        }
+        return orderRepository.save(order);
     }
 }
