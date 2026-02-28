@@ -6,6 +6,8 @@ export const metadata: Metadata = {
   description: "Explore our collection of premium natural skincare.",
 };
 
+export const dynamic = 'force-dynamic';
+
 async function getProductsData() {
   try {
     const backendUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
