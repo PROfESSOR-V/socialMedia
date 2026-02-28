@@ -9,18 +9,19 @@ import { cn, formatPrice } from "@/lib/utils";
 import apiClient from "@/lib/apiClient";
 import { Loader2 } from "lucide-react";
 
-export default function ProductCategories() {
+export default function ProductCategories({ initialProducts = [], initialCategories = ["All"] }: { initialProducts?: any[], initialCategories?: string[] }) {
   const { cachedProducts, cachedCategories, setCachedProducts, setCachedCategories } = useStore();
   const [activeCategory, setActiveCategory] = useState("All");
-  const [products, setProducts] = useState<any[]>(cachedProducts || []);
-  const [categories, setCategories] = useState<string[]>(cachedCategories || ["All"]);
-  const [loading, setLoading] = useState(!cachedProducts || !cachedCategories);
+  const [products, setProducts] = useState<any[]>(initialProducts.length > 0 ? initialProducts : (cachedProducts || []));
+  const [categories, setCategories] = useState<string[]>(initialCategories.length > 1 ? initialCategories : (cachedCategories || ["All"]));
+  const [loading, setLoading] = useState(products.length === 0);
 
   useEffect(() => {
     // If we already have cached data, don't fetch again
-    if (cachedProducts && cachedCategories) {
-      setProducts(cachedProducts);
-      setCategories(cachedCategories);
+    // If we already have cached data or Server Props, don't fetch again
+    if ((cachedProducts && cachedCategories) || initialProducts.length > 0) {
+      if (!initialProducts.length && cachedProducts) setProducts(cachedProducts);
+      if (initialCategories.length <= 1 && cachedCategories) setCategories(cachedCategories);
       setLoading(false);
       return;
     }
