@@ -158,6 +158,24 @@ public class OrderControler {
         }
 
         /**
+         * Fetch AWB from Shipmozo manually - ADMIN only
+         */
+        @PostMapping("/{id}/fetch-awb")
+        @PreAuthorize("hasRole('ADMIN')")
+        public ResponseEntity<?> fetchAwb(
+                        @AuthenticationPrincipal CustomUserDetail user,
+                        @PathVariable String id) {
+                try {
+                        Order updatedOrder = orderService.fetchAwb(new ObjectId(id));
+                        OrderDto orderDto = orderMapper.mapOrder(updatedOrder);
+                        return ResponseEntity.ok(ApiResponse.success("AWB fetched successfully", orderDto));
+                } catch (RuntimeException e) {
+                        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                                        ApiResponse.error(e.getMessage()));
+                }
+        }
+
+        /**
          * Refresh Tracking
          */
         @GetMapping("/{id}/tracking/refresh")
