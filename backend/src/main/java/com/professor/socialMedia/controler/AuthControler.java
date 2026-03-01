@@ -29,12 +29,22 @@ public class AuthControler {
 
     @PostMapping("/signup")
     public ResponseEntity<?> registerUser(@RequestBody RegistorRequest req) {
-        if (userService.findByEmail(req.getEmail()).isPresent()) {
-            return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body(java.util.Map.of("message", "An account with this email already exists."));
+        // Validate mobile number is exactly 10 digits
+        if (req.getMobileNumber() == null || !req.getMobileNumber().matches("\\d{10}")) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(java.util.Map.of("message", "Mobile number must be exactly 10 digits."));
         }
-        userService.createUser(
-                new User(req.getEmail(), req.getPassword()));
+
+        if (userService.findByMobileNumber(req.getMobileNumber()).isPresent()) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(java.util.Map.of("message", "An account with this mobile number already exists."));
+        }
+
+        User newUser = new User(req.getMobileNumber(), req.getPassword());
+        if (req.getEmail() != null && !req.getEmail().isEmpty()) {
+            newUser.setEmail(req.getEmail());
+        }
+        userService.createUser(newUser);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
@@ -42,11 +52,11 @@ public class AuthControler {
     public AuthResponse login(@RequestBody LoginRequest req) {
         Authentication auth = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        req.getEmail(), req.getPassword()));
+                        req.getMobileNumber(), req.getPassword()));
 
         CustomUserDetail user = (CustomUserDetail) auth.getPrincipal();
 
-        User userEntity = userService.findByEmail(req.getEmail()).orElse(null);
+        User userEntity = userService.findByMobileNumber(req.getMobileNumber()).orElse(null);
         String role = userEntity != null ? userEntity.getRole().toString() : "CUSTOMER";
 
         return new AuthResponse(jwtService.generateToken(user), role);

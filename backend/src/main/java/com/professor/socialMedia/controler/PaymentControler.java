@@ -35,7 +35,7 @@ public class PaymentControler {
         public ResponseEntity<Map<String, Object>> createPayment(
                         @AuthenticationPrincipal org.springframework.security.core.userdetails.UserDetails user,
                         @RequestBody Map<String, Object> request) {
-                User userEntity = userService.findByEmail(user.getUsername()).orElseThrow(
+                User userEntity = userService.findByMobileNumber(user.getUsername()).orElseThrow(
                                 () -> new RuntimeException("User not found!"));
                 Order order = orderService.findByIdAndUserId(
                                 new org.bson.types.ObjectId((String) request.get("orderId")),
@@ -46,7 +46,8 @@ public class PaymentControler {
                                 userEntity.getId(), // user identity
                                 "CASHFREE");
                 // 2. Create Cashfree Order
-                Map<String, Object> cashfreeOrder = cashfreeService.createOrder(order, userEntity.getEmail(),
+                Map<String, Object> cashfreeOrder = cashfreeService.createOrder(order,
+                                userEntity.getEmail() != null ? userEntity.getEmail() : "noemail@example.com",
                                 userEntity.getMobileNumber(), (String) request.get("returnUrl"));
 
                 return ResponseEntity.status(HttpStatus.CREATED)

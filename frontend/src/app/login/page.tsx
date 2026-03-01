@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState, useEffect, Suspense } from "react";
-import { ArrowRight, Mail, Lock } from "lucide-react";
+import { ArrowRight, Phone, Lock } from "lucide-react";
 import apiClient from "@/lib/apiClient";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useStore } from "@/store/useStore";
@@ -22,14 +22,20 @@ function LoginForm() {
     setError(null);
     
     const formData = new FormData(e.currentTarget);
-    const email = formData.get("email") as string;
+    const mobileNumber = formData.get("mobileNumber") as string;
     const password = formData.get("password") as string;
+
+    if (!/^\d{10}$/.test(mobileNumber)) {
+      setError("Please enter a valid 10-digit mobile number.");
+      setIsLoading(false);
+      return;
+    }
 
     try {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ mobileNumber, password }),
       });
       
       const data = await res.json();
@@ -39,7 +45,7 @@ function LoginForm() {
       }
       
       if (data.token) {
-        setLogin(data.token, { id: "", email, role: data.role || "CUSTOMER" });
+        setLogin(data.token, { id: "", mobileNumber, role: data.role || "CUSTOMER" });
         router.push("/");
       }
     } catch (err: any) {
@@ -63,21 +69,23 @@ function LoginForm() {
       )}
       <div className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-zinc-700 mb-1.5" htmlFor="email">
-            Email
+          <label className="block text-sm font-medium text-zinc-700 mb-1.5" htmlFor="mobileNumber">
+            Mobile Number
           </label>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Mail className="h-4 w-4 text-zinc-400" />
+              <Phone className="h-4 w-4 text-zinc-400" />
             </div>
             <input
-              id="email"
-              name="email"
-              type="email"
-              autoComplete="email"
+              id="mobileNumber"
+              name="mobileNumber"
+              type="tel"
+              autoComplete="tel"
               required
+              maxLength={10}
+              pattern="\d{10}"
               className="appearance-none relative block w-full pl-10 pr-3 py-2.5 border border-zinc-200 placeholder-zinc-400 text-zinc-900 rounded-lg focus:outline-none focus:ring-1 focus:ring-black focus:border-black focus:z-10 sm:text-sm bg-zinc-50/50 transition-all"
-              placeholder="Enter your email"
+              placeholder="Enter your 10-digit mobile number"
             />
           </div>
         </div>

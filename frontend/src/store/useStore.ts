@@ -15,7 +15,8 @@ interface CartItem {
 interface User {
   id: string;
   name?: string;
-  email: string;
+  mobileNumber: string;
+  email?: string;
   role: string;
 }
 

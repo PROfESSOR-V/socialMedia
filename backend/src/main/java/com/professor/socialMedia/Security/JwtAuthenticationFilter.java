@@ -28,14 +28,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain) throws ServletException, IOException {
+            HttpServletResponse response,
+            FilterChain filterChain) throws ServletException, IOException {
 
         String authToken = request.getHeader("Authorization");
 
         // 1. Check if token is missing or invalid format
         if (authToken == null || !authToken.startsWith("Bearer ")) {
-            // Pass request down the chain without authentication (Anonymous user)
             filterChain.doFilter(request, response);
             return;
         }
@@ -44,21 +43,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             String token = authToken.substring(7);
 
-            Claims claims = jwtService.extractClaim(token); // If this fails, it jumps to catch
-            String email = claims.getSubject();
+            Claims claims = jwtService.extractClaim(token);
+            String mobileNumber = claims.getSubject();
 
-            if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                UserDetails user = userDetailService.loadUserByUsername(email);
+            if (mobileNumber != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                UserDetails user = userDetailService.loadUserByUsername(mobileNumber);
 
-                // Ideally, validate token expiration/integrity against user here if needed
-
-                UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
+                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(user, null,
+                        user.getAuthorities());
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         } catch (Exception e) {
-            // CRITICAL: This line will show you EXACTLY why it fails in the console!
             System.out.println("JWT ERROR: " + e.getMessage());
             e.printStackTrace();
         }
@@ -66,26 +62,3 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

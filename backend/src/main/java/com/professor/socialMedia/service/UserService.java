@@ -6,7 +6,6 @@ import com.professor.socialMedia.repository.UserRepository;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -26,7 +25,7 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    public List<User> findAll(){
+    public List<User> findAll() {
         return userRepository.findAll();
     }
 
@@ -36,6 +35,10 @@ public class UserService {
 
     public void deleteById(ObjectId id) {
         userRepository.deleteById(id);
+    }
+
+    public Optional<User> findByMobileNumber(String mobileNumber) {
+        return Optional.ofNullable(userRepository.findByMobileNumber(mobileNumber));
     }
 
     public Optional<User> findByEmail(String email) {

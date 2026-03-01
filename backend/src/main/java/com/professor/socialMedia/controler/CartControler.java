@@ -32,7 +32,7 @@ public class CartControler {
 
         @GetMapping
         public ResponseEntity<ApiResponse<CartDto>> getCart(@AuthenticationPrincipal CustomUserDetail user) {
-                User userEntity = userService.findByEmail(user.getUsername()).orElseThrow(
+                User userEntity = userService.findByMobileNumber(user.getUsername()).orElseThrow(
                                 () -> new RuntimeException("User not found!"));
                 Cart cart = cartService.getOrCreateCart(userEntity.getId());
                 CartDto cartDto = cartMapper.mapCart(cart);
@@ -47,7 +47,7 @@ public class CartControler {
                 item.setProductId(new ObjectId(req.getProductId()));
                 item.setVariantName(req.getVariantName());
 
-                User userEntity = userService.findByEmail(user.getUsername()).orElseThrow(
+                User userEntity = userService.findByMobileNumber(user.getUsername()).orElseThrow(
                                 () -> new RuntimeException("User not found!"));
                 Cart cart = cartService.addItem(userEntity.getId(), item);
                 CartDto cartDto = cartMapper.mapCart(cart);
@@ -65,7 +65,7 @@ public class CartControler {
                 item.setQuantity(request.getQuantity());
                 item.setVariantName(request.getVariantName());
 
-                User userEntity = userService.findByEmail(user.getUsername()).orElseThrow(
+                User userEntity = userService.findByMobileNumber(user.getUsername()).orElseThrow(
                                 () -> new RuntimeException("User not found!"));
                 Cart cart = cartService.updateItemQuantity(userEntity.getId(), item);
                 CartDto cartDto = cartMapper.mapCart(cart);
@@ -81,7 +81,7 @@ public class CartControler {
                         @PathVariable String productId,
                         @RequestParam(required = false) String variantName) {
 
-                User userEntity = userService.findByEmail(user.getUsername()).orElseThrow(
+                User userEntity = userService.findByMobileNumber(user.getUsername()).orElseThrow(
                                 () -> new RuntimeException("User not found!"));
 
                 CartItem itemToRemove = new CartItem();
@@ -95,7 +95,7 @@ public class CartControler {
 
         @DeleteMapping("/items")
         public ResponseEntity<ApiResponse<Void>> deleteItem(@AuthenticationPrincipal CustomUserDetail user) {
-                User userEntity = userService.findByEmail(user.getUsername()).orElseThrow(
+                User userEntity = userService.findByMobileNumber(user.getUsername()).orElseThrow(
                                 () -> new RuntimeException("User not found!"));
                 cartService.clearCart(userEntity.getId());
                 return ResponseEntity.ok(ApiResponse.success("Cart cleared successfully", null));

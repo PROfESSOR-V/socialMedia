@@ -35,7 +35,7 @@ public class FeedbackController {
                         ApiResponse.error("You must be logged in to submit feedback"));
             }
 
-            User userEntity = userService.findByEmail(user.getUsername()).orElseThrow(
+            User userEntity = userService.findByMobileNumber(user.getUsername()).orElseThrow(
                     () -> new RuntimeException("User not found!"));
 
             String message = body.get("message");

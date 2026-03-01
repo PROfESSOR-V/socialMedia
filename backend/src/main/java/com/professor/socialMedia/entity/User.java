@@ -1,9 +1,9 @@
 package com.professor.socialMedia.entity;
 
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import org.bson.types.ObjectId;
-import org.springframework.context.annotation.Bean;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -13,23 +13,31 @@ import java.util.List;
 
 @Document(collection = "users")
 @Data
+@NoArgsConstructor
 public class User {
 
     @Id
     private ObjectId id;
 
     private String name;
+
     @NonNull
     @Indexed(unique = true)
-    private String email;
+    private String mobileNumber;
+
     @NonNull
     private String password;
 
     private Role role = Role.CUSTOMER;
 
-    private String mobileNumber;
+    private String email; // optional, stored in profile
 
     private List<Address> addresses;
 
     private Instant createdAt = Instant.now();
+
+    public User(@NonNull String mobileNumber, @NonNull String password) {
+        this.mobileNumber = mobileNumber;
+        this.password = password;
+    }
 }

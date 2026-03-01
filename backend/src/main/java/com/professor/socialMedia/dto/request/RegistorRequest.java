@@ -4,6 +4,7 @@ import lombok.Data;
 
 @Data
 public class RegistorRequest {
-    private String email;
+    private String mobileNumber;
     private String password;
+    private String email; // optional
 }

@@ -20,8 +20,8 @@ interface Address {
 interface UserData {
   id: string;
   name: string;
-  email: string;
   mobileNumber: string;
+  email?: string;
   role: string;
   addresses: Address[];
   createdAt: string;
@@ -74,6 +74,7 @@ export default function AdminUsersPage() {
     const userName = (u.name && u.name !== "Unknown") ? u.name : (u.addresses && u.addresses.length > 0 ? u.addresses[0].name : "Unknown");
     return (
       userName.toLowerCase().includes(query) ||
+      u.mobileNumber?.toLowerCase().includes(query) ||
       u.email?.toLowerCase().includes(query) ||
       idString.toLowerCase().includes(query) ||
       u.mobileNumber?.includes(query)
@@ -115,7 +116,7 @@ export default function AdminUsersPage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
             <input
               type="text"
-              placeholder="Search by name, email, or ID..."
+              placeholder="Search by name, mobile, or ID..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-4 py-2 border border-zinc-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent text-sm transition-all"
@@ -185,7 +186,7 @@ export default function AdminUsersPage() {
                       <td className="p-4 whitespace-nowrap">
                         <div className="flex flex-col">
                           <span className="text-sm font-medium text-zinc-900">{userName}</span>
-                          <span className="text-xs text-zinc-500">{u.email}</span>
+                          <span className="text-xs text-zinc-500">{u.mobileNumber}</span>
                         </div>
                       </td>
                       <td className="p-4 whitespace-nowrap text-sm text-zinc-600">
@@ -198,7 +199,7 @@ export default function AdminUsersPage() {
                         <Link 
                           href={`/admin/users/${idString}`}
                           className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-zinc-400 hover:text-black hover:bg-zinc-100 transition-all opacity-0 group-hover:opacity-100 focus:opacity-100 placeholder"
-                          aria-label={`View details for ${u.name || u.email}`}
+                          aria-label={`View details for ${u.name || u.mobileNumber}`}
                         >
                           <Eye className="w-4 h-4" />
                         </Link>

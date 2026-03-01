@@ -20,8 +20,8 @@ interface Address {
 interface UserData {
   id: string;
   name: string;
-  email: string;
   mobileNumber: string;
+  email?: string;
   role: string;
   addresses: Address[];
   createdAt: string;
@@ -164,20 +164,20 @@ export default function UserDetailsPage({ params }: { params: { id: string } }) 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-zinc-100">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-zinc-50 flex items-center justify-center shrink-0">
-                  <Mail className="w-5 h-5 text-zinc-400" />
-                </div>
-                <div>
-                  <p className="text-xs text-zinc-500 font-medium uppercase tracking-wider">Email Address</p>
-                  <p className="text-sm text-zinc-900 font-medium">{userData.email}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-zinc-50 flex items-center justify-center shrink-0">
                   <Phone className="w-5 h-5 text-zinc-400" />
                 </div>
                 <div>
                   <p className="text-xs text-zinc-500 font-medium uppercase tracking-wider">Mobile Number</p>
-                  <p className="text-sm text-zinc-900 font-medium">{userData.mobileNumber || "Not provided"}</p>
+                  <p className="text-sm text-zinc-900 font-medium">{userData.mobileNumber}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-zinc-50 flex items-center justify-center shrink-0">
+                  <Mail className="w-5 h-5 text-zinc-400" />
+                </div>
+                <div>
+                  <p className="text-xs text-zinc-500 font-medium uppercase tracking-wider">Email Address</p>
+                  <p className="text-sm text-zinc-900 font-medium">{userData.email || "Not provided"}</p>
                 </div>
               </div>
             </div>

@@ -30,7 +30,7 @@ public class UserControler {
      */
     @GetMapping("/profile")
     public ResponseEntity<ApiResponse<UserDto>> getCurrentUser(@AuthenticationPrincipal CustomUserDetail user) {
-        User userEntity = userService.findByEmail(user.getUsername()).orElse(null);
+        User userEntity = userService.findByMobileNumber(user.getUsername()).orElse(null);
         if (userEntity == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
                     ApiResponse.error("User Profile Not Found"));
@@ -76,7 +76,7 @@ public class UserControler {
             @AuthenticationPrincipal CustomUserDetail user,
             @RequestBody UserDto updateRequest) {
 
-        User userEntity = userService.findByEmail(user.getUsername()).orElse(null);
+        User userEntity = userService.findByMobileNumber(user.getUsername()).orElse(null);
         if (userEntity == null) {
             return ResponseEntity
                     .status(HttpStatus.NOT_FOUND)
@@ -87,8 +87,8 @@ public class UserControler {
         if (updateRequest.getName() != null) {
             userEntity.setName(updateRequest.getName());
         }
-        if (updateRequest.getMobileNumber() != null) {
-            userEntity.setMobileNumber(updateRequest.getMobileNumber());
+        if (updateRequest.getEmail() != null) {
+            userEntity.setEmail(updateRequest.getEmail());
         }
         if (updateRequest.getAddresses() != null) {
             userEntity.setAddresses(updateRequest.getAddresses());
@@ -106,7 +106,7 @@ public class UserControler {
     public ResponseEntity<ApiResponse<Void>> deleteCurrentUserAccount(
             @AuthenticationPrincipal CustomUserDetail user) {
 
-        User userEntity = userService.findByEmail(user.getUsername()).orElse(null);
+        User userEntity = userService.findByMobileNumber(user.getUsername()).orElse(null);
         if (userEntity == null) {
             return ResponseEntity
                     .status(HttpStatus.NOT_FOUND)

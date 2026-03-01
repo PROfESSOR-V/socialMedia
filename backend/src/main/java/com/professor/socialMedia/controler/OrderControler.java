@@ -37,7 +37,7 @@ public class OrderControler {
          */
         @PostMapping
         public ResponseEntity<ApiResponse<OrderDto>> createOrder(@AuthenticationPrincipal CustomUserDetail user) {
-                User userEntity = userService.findByEmail(user.getUsername()).orElseThrow(
+                User userEntity = userService.findByMobileNumber(user.getUsername()).orElseThrow(
                                 () -> new RuntimeException("User not found!"));
                 Order order = orderService.createFromCart(userEntity.getId());
                 OrderDto orderDto = orderMapper.mapOrder(order);
@@ -51,7 +51,7 @@ public class OrderControler {
         @GetMapping
         public ResponseEntity<ApiResponse<List<OrderDto>>> getOrders(
                         @AuthenticationPrincipal CustomUserDetail user) {
-                User userEntity = userService.findByEmail(user.getUsername()).orElseThrow(
+                User userEntity = userService.findByMobileNumber(user.getUsername()).orElseThrow(
                                 () -> new RuntimeException("User not found!"));
                 List<Order> all = orderService.findByUserId(userEntity.getId());
                 List<OrderDto> order = all.stream()
@@ -67,7 +67,7 @@ public class OrderControler {
         public ResponseEntity<ApiResponse<OrderDto>> getOrder(
                         @AuthenticationPrincipal CustomUserDetail user,
                         @PathVariable String id) {
-                User userEntity = userService.findByEmail(user.getUsername()).orElseThrow(
+                User userEntity = userService.findByMobileNumber(user.getUsername()).orElseThrow(
                                 () -> new RuntimeException("User not found!"));
                 Order order = orderService.findById(new ObjectId(id));
                 if (order == null) {
@@ -123,7 +123,7 @@ public class OrderControler {
                                 reason = body.get("reason");
                         }
 
-                        User userEntity = userService.findByEmail(user.getUsername()).orElseThrow(
+                        User userEntity = userService.findByMobileNumber(user.getUsername()).orElseThrow(
                                         () -> new RuntimeException("User not found!"));
                         Order order = orderService.findById(new ObjectId(id));
                         if (order == null) {

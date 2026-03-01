@@ -19,7 +19,8 @@ interface Address {
 interface UserProfile {
   id: string;
   name?: string;
-  email: string;
+  mobileNumber: string;
+  email?: string;
   role: string;
   addresses: Address[];
 }
@@ -35,6 +36,7 @@ export default function ProfilePage() {
 
   // Editable fields
   const [editName, setEditName] = useState("");
+  const [editEmail, setEditEmail] = useState("");
   const [addresses, setAddresses] = useState<Address[]>([]);
 
   useEffect(() => {
@@ -50,6 +52,7 @@ export default function ProfilePage() {
           const profileData = data.data;
           setProfile(profileData);
           setEditName(profileData.name || "");
+          setEditEmail(profileData.email || "");
           setAddresses(profileData.addresses || []);
           
           // Sync store name or role if it was empty from login or outdated
@@ -107,6 +110,7 @@ export default function ProfilePage() {
     try {
       const { data } = await apiClient.put("/api/user/profile", {
         name: editName,
+        email: editEmail || null,
         addresses: addresses
       });
       if (data && data.success) {
@@ -173,9 +177,9 @@ export default function ProfilePage() {
               <div className="space-y-4">
                 <div>
                   <label className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1">
-                    Email Address <span className="text-zinc-400 normal-case font-normal">(Read Only)</span>
+                    Mobile Number <span className="text-zinc-400 normal-case font-normal">(Read Only)</span>
                   </label>
-                  <div className="text-zinc-900 font-medium truncate">{profile?.email}</div>
+                  <div className="text-zinc-900 font-medium truncate">{profile?.mobileNumber}</div>
                 </div>
 
                 <div>
@@ -189,6 +193,20 @@ export default function ProfilePage() {
                     onChange={(e) => setEditName(e.target.value)}
                     className="w-full px-3 py-2 border border-zinc-200 rounded-md focus:outline-none focus:ring-1 focus:ring-black focus:border-black text-sm transition-all"
                     placeholder="E.g. Jane Doe"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1" htmlFor="email">
+                    Email <span className="text-zinc-400 normal-case font-normal">(Optional)</span>
+                  </label>
+                  <input
+                    id="email"
+                    type="email"
+                    value={editEmail}
+                    onChange={(e) => setEditEmail(e.target.value)}
+                    className="w-full px-3 py-2 border border-zinc-200 rounded-md focus:outline-none focus:ring-1 focus:ring-black focus:border-black text-sm transition-all"
+                    placeholder="E.g. jane@example.com"
                   />
                 </div>
               </div>

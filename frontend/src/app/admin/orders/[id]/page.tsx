@@ -44,8 +44,8 @@ interface Order {
 interface UserData {
   id: string;
   name: string;
-  email: string;
   mobileNumber: string;
+  email?: string;
   addresses: any[];
 }
 
@@ -239,12 +239,12 @@ export default function AdminOrderDetailsPage() {
             <div className="flex-1">
                <h2 className="text-lg font-medium text-black">{customerName}</h2>
                <div className="flex items-center gap-4 mt-1">
-                 <Link href={`/admin/users/${String((order.userId as any)?.timestamp || order.userId)}`} className="text-sm text-zinc-500 hover:text-black hover:underline transition-colors flex items-center gap-1.5">
-                   <Mail className="w-3.5 h-3.5" /> {customerEmail}
-                 </Link>
                  <span className="text-sm text-zinc-500 flex items-center gap-1.5">
                    <Phone className="w-3.5 h-3.5" /> {customerPhone}
                  </span>
+                 <Link href={`/admin/users/${String((order.userId as any)?.timestamp || order.userId)}`} className="text-sm text-zinc-500 hover:text-black hover:underline transition-colors flex items-center gap-1.5">
+                   <Mail className="w-3.5 h-3.5" /> {customerEmail}
+                 </Link>
                </div>
             </div>
           </section>

@@ -155,13 +155,12 @@ export default function CheckoutPage() {
           <section>
             <h2 className="mb-4 text-lg font-medium">Contact Information</h2>
             <div className="space-y-4">
-              <Input type="email" value={profile?.email || ""} disabled placeholder="Email address" />
+              <Input type="tel" value={profile?.mobileNumber || mobileNumber} disabled placeholder="Mobile Number" />
               <Input 
-                type="tel" 
-                placeholder="Mobile Number" 
-                value={mobileNumber}
-                onChange={(e) => setMobileNumber(e.target.value)}
-                required 
+                type="email" 
+                placeholder="Email (Optional)" 
+                value={profile?.email || ""}
+                disabled
               />
             </div>
           </section>
