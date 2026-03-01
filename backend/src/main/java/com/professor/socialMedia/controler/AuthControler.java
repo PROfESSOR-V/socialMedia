@@ -28,28 +28,28 @@ public class AuthControler {
     private AuthenticationManager authenticationManager;
 
     @PostMapping("/signup")
-    public ResponseEntity<?> registerUser(@RequestBody RegistorRequest req){
+    public ResponseEntity<?> registerUser(@RequestBody RegistorRequest req) {
+        if (userService.findByEmail(req.getEmail()).isPresent()) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(java.util.Map.of("message", "An account with this email already exists."));
+        }
         userService.createUser(
-                new User(req.getEmail(), req.getPassword())
-        );
+                new User(req.getEmail(), req.getPassword()));
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
     @PostMapping("/login")
-    public AuthResponse login(@RequestBody LoginRequest req){
+    public AuthResponse login(@RequestBody LoginRequest req) {
         Authentication auth = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        req.getEmail(), req.getPassword()
-                )
-        );
+                        req.getEmail(), req.getPassword()));
 
-        CustomUserDetail user =  (CustomUserDetail) auth.getPrincipal();
+        CustomUserDetail user = (CustomUserDetail) auth.getPrincipal();
 
         User userEntity = userService.findByEmail(req.getEmail()).orElse(null);
         String role = userEntity != null ? userEntity.getRole().toString() : "CUSTOMER";
 
         return new AuthResponse(jwtService.generateToken(user), role);
     }
-
 
 }
