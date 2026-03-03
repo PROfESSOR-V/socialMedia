@@ -17,7 +17,7 @@ public class Product {
     private String name;
     private String description;
 
-    private Double price;
+    private Double discountPercentage;
     private String currency;
     private int stock;
     private String mainImage;
@@ -33,6 +33,8 @@ public class Product {
     private ObjectId categoryId;
 
     private boolean active = true;
+    private Integer priority = 0;
+    private boolean showOnHomePage = false;
     private Instant createdAt = Instant.now();
 
     public Boolean getActive() {

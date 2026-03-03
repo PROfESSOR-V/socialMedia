@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Search, Eye, AlertCircle, RefreshCw } from "lucide-react";
+import { Search, Eye, AlertCircle, RefreshCw, Loader2 } from "lucide-react";
 import { useStore } from "@/store/useStore";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -35,6 +35,7 @@ export default function AdminOrdersPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [fetchingAwbId, setFetchingAwbId] = useState<string | null>(null);
 
   const fetchData = async () => {
     try {
@@ -73,11 +74,18 @@ export default function AdminOrdersPage() {
 
   const handleFetchAwb = async (orderId: string) => {
     try {
-      await apiClient.post(`/api/orders/${orderId}/fetch-awb`);
-      await fetchData(); 
+      setFetchingAwbId(orderId);
+      const res = await apiClient.post(`/api/orders/${orderId}/fetch-awb`);
+      if (res.data?.success && res.data?.data) {
+        setOrders(prev => prev.map(o => o.id === orderId ? res.data.data : o));
+      } else {
+        await fetchData(); 
+      }
     } catch(err: any) {
       alert(err.response?.data?.message || err.message || "Failed to fetch AWB. Please ensure you assigned a courier & pickup location on Shipmozo dashboard.");
       console.error(err);
+    } finally {
+      setFetchingAwbId(null);
     }
   };
 
@@ -247,8 +255,14 @@ export default function AdminOrdersPage() {
                              ✓ {order.shipment.awb}
                            </span>
                         ) : order.shipmozoMsg === "Success" ? (
-                           <button onClick={() => handleFetchAwb(order.id as string)} className="text-[10px] hover:bg-zinc-100 px-2 py-1 rounded border border-zinc-200 font-medium flex items-center gap-1 text-zinc-700">
-                               Get AWB
+                           <button 
+                             onClick={() => handleFetchAwb(order.id as string)} 
+                             disabled={fetchingAwbId === order.id}
+                             className="text-[10px] hover:bg-zinc-100 px-2 py-1 rounded border border-zinc-200 font-medium flex items-center gap-1 text-zinc-700 disabled:opacity-50"
+                           >
+                               {fetchingAwbId === order.id ? (
+                                 <><Loader2 className="w-3 h-3 animate-spin"/> Fetching...</>
+                               ) : "Get AWB"}
                            </button>
                         ) : (
                            <span className="text-zinc-400 text-xs">-</span>

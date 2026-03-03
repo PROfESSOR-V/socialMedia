@@ -5,17 +5,12 @@ import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.time.Instant;
-
-@Document(collection = "feedback")
 @Data
-public class Feedback {
+@Document(collection = "site_settings")
+public class SiteSetting {
     @Id
     private ObjectId id;
 
-    private ObjectId userId;
-    private String name;
-    private String message;
-
-    private Instant createdAt = Instant.now();
+    private String key;
+    private Object value;
 }

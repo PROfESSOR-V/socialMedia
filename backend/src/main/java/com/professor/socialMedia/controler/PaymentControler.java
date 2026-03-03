@@ -23,6 +23,9 @@ public class PaymentControler {
         private PaymentService paymentService;
 
         @Autowired
+        private com.professor.socialMedia.repository.PaymentRepository paymentRepository;
+
+        @Autowired
         private OrderService orderService;
 
         @Autowired
@@ -87,6 +90,7 @@ public class PaymentControler {
                                         .body(Map.of("error", "Invalid signature or payload: " + e.getMessage()));
                 }
         }
+
         /**
          * Get payment details by payment ID
          */
@@ -105,5 +109,46 @@ public class PaymentControler {
         // .body(ApiResponse.error("Payment not found: " + e.getMessage()));
         // }
         // }
+
+        @GetMapping("/admin/all")
+        @org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN')")
+        public ResponseEntity<Map<String, Object>> getAllPayments() {
+                java.util.List<Payment> payments = paymentRepository.findAll();
+                java.util.List<Map<String, Object>> result = payments.stream()
+                                .sorted(java.util.Comparator.comparing(Payment::getCreatedAt).reversed())
+                                .map(payment -> {
+                                        Map<String, Object> map = new java.util.HashMap<>();
+                                        map.put("id", payment.getId().toString());
+                                        map.put("orderId",
+                                                        payment.getOrderId() != null ? payment.getOrderId().toString()
+                                                                        : null);
+                                        map.put("provider", payment.getProvider());
+                                        map.put("providerPaymentId", payment.getProviderPaymentId());
+                                        map.put("status", payment.getStatus());
+                                        map.put("amount", payment.getAmount());
+                                        map.put("createdAt", payment.getCreatedAt());
+
+                                        if (payment.getOrderId() != null) {
+                                                try {
+                                                        Order order = orderService.findById(payment.getOrderId());
+                                                        if (order != null && order.getUserId() != null) {
+                                                                userService.findById(order.getUserId())
+                                                                                .ifPresent(user -> {
+                                                                                        map.put("userName", user
+                                                                                                        .getName());
+                                                                                        map.put("userEmail", user
+                                                                                                        .getEmail());
+                                                                                        map.put("userPhone", user
+                                                                                                        .getMobileNumber());
+                                                                                });
+                                                        }
+                                                } catch (Exception e) {
+                                                }
+                                        }
+                                        return map;
+                                }).collect(java.util.stream.Collectors.toList());
+
+                return ResponseEntity.ok(Map.of("success", true, "data", result));
+        }
 
 }

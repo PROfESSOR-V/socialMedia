@@ -50,7 +50,7 @@ public class CartService {
         }
 
         // Determine effective price and stock based on variant
-        double effectivePrice = product.getPrice() != null ? product.getPrice() : 0.0;
+        double effectivePrice = 0.0;
         int effectiveStock = product.getStock();
 
         if (item.getVariantName() != null && !item.getVariantName().isEmpty() && product.getVariants() != null) {
@@ -58,7 +58,8 @@ public class CartService {
                     .filter(v -> v.getName().equals(item.getVariantName()))
                     .findFirst();
             if (variantOpt.isPresent()) {
-                effectivePrice = variantOpt.get().getPrice();
+                effectivePrice = variantOpt.get().getDiscountPrice() != null ? variantOpt.get().getDiscountPrice()
+                        : variantOpt.get().getActualPrice();
                 effectiveStock = variantOpt.get().getStock();
             } else {
                 throw new RuntimeException("Selected variant does not exist");

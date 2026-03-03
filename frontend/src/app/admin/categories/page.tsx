@@ -12,7 +12,7 @@ export default function AdminCategoriesPage() {
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<any>(null);
-  const [formData, setFormData] = useState({ name: "" });
+  const [formData, setFormData] = useState({ name: "", priority: "0" });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -34,7 +34,10 @@ export default function AdminCategoriesPage() {
 
   const handleOpenModal = (category: any = null) => {
     setEditingCategory(category);
-    setFormData({ name: category ? category.name : "" });
+    setFormData({ 
+      name: category ? category.name : "",
+      priority: category?.priority ? category.priority.toString() : "0"
+    });
     setError(null);
     setIsModalOpen(true);
   };
@@ -42,7 +45,7 @@ export default function AdminCategoriesPage() {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setEditingCategory(null);
-    setFormData({ name: "" });
+    setFormData({ name: "", priority: "0" });
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -52,12 +55,13 @@ export default function AdminCategoriesPage() {
     setSaving(true);
     setError(null);
     try {
+      const payload = { ...formData, priority: parseInt(formData.priority) || 0 };
       if (editingCategory) {
         // Assume PUT /api/categories/{id} exists or similar, adapt if not.
         // Wait, the prompt says "save it using category controlerr". Let's assume standard REST.
-        await apiClient.put(`/api/categories/${editingCategory.id}`, formData);
+        await apiClient.put(`/api/categories/${editingCategory.id}`, payload);
       } else {
-        await apiClient.post("/api/categories/add", formData);
+        await apiClient.post("/api/categories/add", payload);
       }
       await fetchCategories();
       handleCloseModal();
@@ -123,6 +127,7 @@ export default function AdminCategoriesPage() {
               <tr>
                 <th className="px-6 py-3 w-16">Icon</th>
                 <th className="px-6 py-3">Category Name</th>
+                <th className="px-6 py-3">Priority</th>
                 <th className="px-6 py-3 text-right">Actions</th>
               </tr>
             </thead>
@@ -150,6 +155,11 @@ export default function AdminCategoriesPage() {
                     </td>
                     <td className="px-6 py-4">
                       <p className="font-medium text-zinc-900">{category.name}</p>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-medium rounded-md bg-zinc-100 text-zinc-600">
+                        {category.priority || 0}
+                      </span>
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
@@ -202,10 +212,24 @@ export default function AdminCategoriesPage() {
                   type="text"
                   required
                   value={formData.name}
-                  onChange={(e) => setFormData({ name: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   placeholder="e.g. Cleansers"
                   className="w-full px-3 py-2 border border-zinc-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-black"
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-zinc-700 mb-1.5" htmlFor="categoryPriority">
+                  Priority
+                </label>
+                <input
+                  id="categoryPriority"
+                  type="number"
+                  value={formData.priority}
+                  onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
+                  className="w-full px-3 py-2 border border-zinc-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-black"
+                />
+                <p className="mt-1 text-xs text-zinc-500">Higher numbers appear first.</p>
               </div>
 
               <div className="flex items-center justify-end gap-3 pt-4 border-t border-zinc-100 mt-6">

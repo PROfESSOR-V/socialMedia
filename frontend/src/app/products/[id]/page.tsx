@@ -58,14 +58,19 @@ export default function ProductPage({ params }: { params: { id: string } }) {
     addToCart({ 
        id: product.id, 
        name: product.name, 
-       price: displayPrice, 
+       price: currentActivePrice, 
        image: product.mainImage || "https://placehold.co/400x400/e8e8e1/a0a096?text=Image", 
        quantity,
        variantName: selectedVariant ? selectedVariant.name : undefined 
     });
   };
 
-  const displayPrice = selectedVariant && selectedVariant.price ? selectedVariant.price : product.price;
+  const hasDiscount = selectedVariant?.discountPrice || product.discountPercentage > 0;
+  const displayActualPrice = selectedVariant ? selectedVariant.actualPrice : 0;
+  const displayDiscountPrice = selectedVariant 
+    ? (selectedVariant.discountPrice || (selectedVariant.actualPrice * (1 - (product.discountPercentage || 0) / 100))) 
+    : 0;
+  const currentActivePrice = hasDiscount ? displayDiscountPrice : displayActualPrice;
   const displayStock = selectedVariant && selectedVariant.stock !== undefined ? selectedVariant.stock : (product.stock || product.quantity || 0);
   const isOutOfStock = displayStock < quantity;
 
@@ -151,8 +156,26 @@ export default function ProductPage({ params }: { params: { id: string } }) {
           transition={{ duration: 0.6, delay: 0.2 }}
           className="flex flex-col"
         >
-          <div className="mb-2 text-2xl font-bold text-zinc-900">
-             {formatPrice(displayPrice)}
+          <div className="mb-4 flex items-end gap-3">
+             {hasDiscount ? (
+               <>
+                 <span className="text-3xl font-bold text-zinc-900">
+                    {formatPrice(displayDiscountPrice)}
+                 </span>
+                 <span className="text-xl text-zinc-400 line-through mb-1">
+                    {formatPrice(displayActualPrice)}
+                 </span>
+                 {product.discountPercentage > 0 && (
+                   <span className="bg-red-100 text-red-700 text-sm font-bold px-2.5 py-1 rounded-md mb-1.5 ml-1">
+                     {product.discountPercentage}% OFF
+                   </span>
+                 )}
+               </>
+             ) : (
+               <span className="text-3xl font-bold text-zinc-900">
+                  {formatPrice(displayActualPrice)}
+               </span>
+             )}
           </div>
 
           <h1 className="mb-4 font-serif text-4xl lg:text-5xl font-medium text-zinc-900 leading-tight">
@@ -212,7 +235,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
                 className="w-full text-base h-14 bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl shadow-lg hover:shadow-xl transition-all uppercase tracking-widest font-semibold disabled:bg-zinc-300 disabled:text-zinc-500 disabled:shadow-none" 
                 onClick={handleAddToCart}
              >
-               {isOutOfStock ? "Out of Stock" : `Add to Cart — ${formatPrice(displayPrice * quantity)}`}
+               {isOutOfStock ? "Out of Stock" : `Add to Cart — ${formatPrice(currentActivePrice * quantity)}`}
              </Button>
              
              <div className="mt-4 flex items-center gap-2 text-sm text-zinc-500 justify-center">

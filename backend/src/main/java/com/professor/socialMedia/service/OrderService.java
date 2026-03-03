@@ -53,7 +53,7 @@ public class OrderService {
                 throw new IllegalArgumentException("Invalid quantity");
             }
 
-            double effectivePrice = p.getPrice() != null ? p.getPrice() : 0.0;
+            double effectivePrice = 0.0;
             int effectiveStock = p.getStock();
             boolean isVariantSelected = ci.getVariantName() != null && !ci.getVariantName().isEmpty()
                     && p.getVariants() != null;
@@ -63,7 +63,8 @@ public class OrderService {
                         .filter(v -> v.getName().equals(ci.getVariantName()))
                         .findFirst();
                 if (variantOpt.isPresent()) {
-                    effectivePrice = variantOpt.get().getPrice();
+                    effectivePrice = variantOpt.get().getDiscountPrice() != null ? variantOpt.get().getDiscountPrice()
+                            : variantOpt.get().getActualPrice();
                     effectiveStock = variantOpt.get().getStock();
                 } else {
                     throw new RuntimeException("Selected variant does not exist for product " + p.getId());

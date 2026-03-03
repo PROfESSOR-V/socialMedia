@@ -8,7 +8,9 @@ import java.util.List;
 
 public interface ProductRepository extends MongoRepository<Product, ObjectId> {
 
-    List<Product> findByActiveTrue();
+    List<Product> findByActiveTrueOrderByPriorityDesc();
+
+    List<Product> findAllByOrderByPriorityDesc();
 
     List<Product> findByCategoryId(ObjectId categoryId);
 }

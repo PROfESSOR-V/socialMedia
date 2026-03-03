@@ -12,6 +12,7 @@ public class CreateCategoryRequest {
     @NotBlank(message = "Category name is required")
     private String name;
 
-    // @NotBlank(message = "Description is required")
     // private String description;
+
+    private Integer priority;
 }

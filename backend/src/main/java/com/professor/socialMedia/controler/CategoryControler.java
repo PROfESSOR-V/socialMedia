@@ -49,6 +49,9 @@ public class CategoryControler {
     public ResponseEntity<ApiResponse<CategoryDto>> createCategory(@Valid @RequestBody CreateCategoryRequest req) {
         Category category = new Category();
         category.setName(req.getName());
+        if (req.getPriority() != null) {
+            category.setPriority(req.getPriority());
+        }
 
         Category created = categoryService.create(category);
         CategoryDto categoryDto = categoryMapper.mapCategory(created);
@@ -70,6 +73,9 @@ public class CategoryControler {
         }
 
         category.setName(req.getName());
+        if (req.getPriority() != null) {
+            category.setPriority(req.getPriority());
+        }
         Category updated = categoryService.update(category);
         CategoryDto categoryDto = categoryMapper.mapCategory(updated);
 

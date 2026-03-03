@@ -14,4 +14,6 @@ public class Category {
     private String name;
 
     private ObjectId parentId;
+
+    private Integer priority = 0;
 }

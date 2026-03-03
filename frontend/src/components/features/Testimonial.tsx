@@ -1,42 +1,17 @@
 "use client";
 
-import { useEffect, useRef } from "react";
 import { Star } from "lucide-react";
+import { motion } from "framer-motion";
 
 export default function Testimonial() {
-  const sectionRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("active");
-            // Stop observing once animation has triggered
-            observer.unobserve(entry.target);
-          }
-        });
-      },
-      { threshold: 0.1 } // Trigger when 10% is visible
-    );
-
-    const currentRef = sectionRef.current;
-    if (currentRef) {
-      observer.observe(currentRef);
-    }
-
-    return () => {
-      if (currentRef) {
-        observer.unobserve(currentRef);
-      }
-    };
-  }, []);
-
   return (
-    <section className="bg-[#f6f6f4] py-16 md:py-24 text-center">
-      <div 
-        ref={sectionRef} 
-        className="container mx-auto px-6 reveal max-w-[700px]"
+    <section className="bg-[#f6f6f4] py-16 md:py-24 text-center overflow-hidden">
+      <motion.div 
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.1 }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+        className="container mx-auto px-6 max-w-[700px]"
       >
         <div className="flex justify-center gap-1.5 mb-6 md:mb-8 text-[#111111]">
           {[...Array(5)].map((_, i) => (
@@ -54,7 +29,7 @@ export default function Testimonial() {
             Verified Buyer <span className="h-1 w-1 rounded-full bg-zinc-400 inline-block ml-1" />
           </span>
         </div>
-      </div>
+      </motion.div>
     </section>
   );
 }

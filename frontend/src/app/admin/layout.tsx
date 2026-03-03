@@ -13,7 +13,9 @@ import {
   ChevronRight,
   User as UserIcon,
   X,
-  Users
+  Users,
+  Settings,
+  CreditCard
 } from "lucide-react";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -57,8 +59,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
     { name: "All Users", href: "/admin/users", icon: Users },
     { name: "Products", href: "/admin/products", icon: Package },
+    { name: "Categories", href: "/admin/categories", icon: LayoutDashboard },
     { name: "Orders", href: "/admin/orders", icon: ShoppingCart },
-    { name: "Categories", href: "/admin/categories", icon: LayoutDashboard }, // using LayoutDashboard or similar icon
+    { name: "Payments", href: "/admin/payments", icon: CreditCard },
+    { name: "Settings", href: "/admin/settings", icon: Settings },
   ];
 
   return (

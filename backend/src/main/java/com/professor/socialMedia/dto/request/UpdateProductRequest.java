@@ -14,7 +14,9 @@ import java.util.List;
 public class UpdateProductRequest {
     private String name;
     private String description;
-    private Double price;
+    private Double discountPercentage;
+    private Integer priority;
+    private Boolean showOnHomePage;
     private String currency;
     private Integer stock;
     private String mainImage;

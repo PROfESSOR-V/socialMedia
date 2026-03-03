@@ -13,6 +13,7 @@ import apiClient from "@/lib/apiClient";
 export default function ProductGrid() {
   const { addToCart, user, setAuthModalOpen, cachedProducts, setCachedProducts } = useStore();
   const [products, setProducts] = useState<any[]>((cachedProducts || []).slice(0, 8));
+  const [mobileCols, setMobileCols] = useState(1);
   const router = useRouter();
 
   useEffect(() => {
@@ -25,17 +26,30 @@ export default function ProductGrid() {
       try {
         const { data } = await apiClient.get("/api/products");
         const productList = Array.isArray(data) ? data : data?.data || data?.products || [];
-        setProducts(productList.slice(0, 8)); // Show first 8 products
+        const homeProducts = productList.filter((p: any) => p.showOnHomePage);
+        const productsToShow = homeProducts.length > 0 ? homeProducts.slice(0, 8) : productList.slice(0, 8);
+        setProducts(productsToShow);
         setCachedProducts(productList);
       } catch (err) {
         console.error("Failed to fetch products", err);
       }
     };
+    
+    const fetchSettings = async () => {
+      try {
+         const { data } = await apiClient.get("/api/settings/mobileProductsPerRow");
+         if (data && data.value) setMobileCols(parseInt(data.value.toString()));
+      } catch (err) {
+         // silently ignore
+      }
+    }
+    
     fetchProducts();
+    fetchSettings();
   }, [cachedProducts, setCachedProducts]);
 
   return (
-    <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+    <div className={`grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 ${mobileCols === 2 ? 'grid-cols-2 gap-x-4 gap-y-8' : 'grid-cols-1'}`}>
       {products.map((product, index) => (
         <motion.div
           key={product.id}
@@ -68,13 +82,40 @@ export default function ProductGrid() {
               <ShoppingBag className="h-4 w-4" />
             </Button>
           </div>
+          {/* Badge */}
+          {product.discountPercentage > 0 && (
+            <div className="absolute top-3 left-3 bg-red-600 text-white text-[10px] uppercase font-bold px-2 py-1 rounded-full z-10">
+                {product.discountPercentage}% OFF
+            </div>
+          )}
           <h3 className="font-medium text-lg text-primary">{product.name}</h3>
           <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
             {product.description}
           </p>
-          <p className="font-medium text-foreground">
-            {new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(product.price)}
-          </p>
+          <div className="font-medium text-foreground flex items-center gap-2">
+            {product.variants?.[0] ? (
+              <>
+                {(product.variants[0].discountPrice || product.discountPercentage > 0) ? (
+                  <>
+                    <span className="text-xl font-bold">
+                      {new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(
+                        product.variants[0].discountPrice || (product.variants[0].actualPrice * (1 - (product.discountPercentage || 0) / 100))
+                      )}
+                    </span>
+                    <span className="text-sm text-zinc-400 line-through">
+                      {new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(product.variants[0].actualPrice)}
+                    </span>
+                  </>
+                ) : (
+                  <span className="text-xl font-bold">
+                    {new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(product.variants[0].actualPrice)}
+                  </span>
+                )}
+              </>
+            ) : (
+              <span>Price unavailable</span>
+            )}
+          </div>
         </motion.div>
       ))}
     </div>

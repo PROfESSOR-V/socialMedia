@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Send, MessageSquare } from "lucide-react";
@@ -8,19 +8,30 @@ import { useStore } from "@/store/useStore";
 
 export default function FeedbackSection() {
   const { user } = useStore();
+  const [name, setName] = useState("");
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
 
+
+  useEffect(() => {
+    if (user?.name && !name) {
+      setName(user.name);
+    }
+  }, [user]);
+
+  const wordCount = message.trim().split(/\s+/).filter(w => w.length > 0).length;
+  const isOverLimit = wordCount > 100;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!message.trim()) return;
+    if (!message.trim() || isOverLimit) return;
 
     try {
       setIsSubmitting(true);
       setError("");
-      await api.feedback.submit(message);
+      await api.feedback.submit(message, name.trim() || undefined);
       setSuccess(true);
       setMessage("");
     } catch (err: any) {
@@ -30,9 +41,6 @@ export default function FeedbackSection() {
     }
   };
 
-  if (!user) {
-    return null; // Don't show feedback block if not logged in
-  }
 
   return (
     <section className="bg-[#f6f6f4] py-16 px-6 relative z-10 border-t border-b border-black/5">
@@ -61,13 +69,26 @@ export default function FeedbackSection() {
         ) : (
           <form onSubmit={handleSubmit} className="text-left space-y-4">
             <div className="relative">
+              {!user && (
+                <input
+                  type="text"
+                  placeholder="Your Name (Optional)"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full bg-white border border-zinc-200 focus:border-primary focus:ring-1 focus:ring-primary rounded-xl p-3 mb-4"
+                  disabled={isSubmitting}
+                />
+              )}
               <textarea
-                placeholder="Tell us about your experience..."
+                placeholder="Tell us about your experience... (Max 100 words)"
                 value={message}
                 onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setMessage(e.target.value)}
-                className="w-full min-h-[120px] resize-y bg-white border border-zinc-200 focus:border-primary focus:ring-1 focus:ring-primary rounded-xl p-3"
+                className={`w-full min-h-[120px] resize-y bg-white border ${isOverLimit ? 'border-red-500' : 'border-zinc-200'} focus:border-primary focus:ring-1 focus:ring-primary rounded-xl p-3`}
                 disabled={isSubmitting}
               />
+              <div className={`text-xs text-right mt-1 ${isOverLimit ? 'text-red-500 font-medium' : 'text-zinc-400'}`}>
+                {wordCount} / 100 words
+              </div>
             </div>
             
             {error && (
@@ -77,7 +98,7 @@ export default function FeedbackSection() {
             <div className="flex justify-end">
               <Button 
                 type="submit" 
-                disabled={!message.trim() || isSubmitting}
+                disabled={!message.trim() || isOverLimit || isSubmitting}
                 className="rounded-full px-8 bg-primary text-white hover:bg-primary/90 transition-colors"
               >
                 {isSubmitting ? "Sending..." : "Send Feedback"}

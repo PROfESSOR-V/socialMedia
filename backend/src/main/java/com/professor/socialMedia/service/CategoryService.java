@@ -18,10 +18,10 @@ public class CategoryService {
         return categoryRepository.save(category);
     }
 
-    public List<Category> findAll(){
-        return categoryRepository.findAll();
-
+    public List<Category> findAll() {
+        return categoryRepository.findAllByOrderByPriorityDesc();
     }
+
     public Category findById(String id) {
         try {
             return categoryRepository.findById(new org.bson.types.ObjectId(id)).orElse(null);

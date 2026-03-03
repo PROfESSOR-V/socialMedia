@@ -15,7 +15,7 @@ public class ProductDto {
     private String id;
     private String name;
     private String description;
-    private Double price;
+    private Double discountPercentage;
     private String currency;
     private Integer stock;
     private String mainImage;
@@ -27,6 +27,9 @@ public class ProductDto {
     private String ingredients;
     private String howToUse;
     private String categoryId;
+    private CategoryDto category;
     private Boolean isActive;
+    private Integer priority;
+    private Boolean showOnHomePage;
     private List<ProductVariant> variants;
 }

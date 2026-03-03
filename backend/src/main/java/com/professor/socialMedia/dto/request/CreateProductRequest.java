@@ -20,9 +20,10 @@ public class CreateProductRequest {
     @NotBlank(message = "Description is required")
     private String description;
 
-    @NotNull(message = "Price is required")
-    @Positive(message = "Price must be positive")
-    private Double price;
+    @Positive(message = "Discount percentage must be positive")
+    private Double discountPercentage;
+    private Integer priority;
+    private Boolean showOnHomePage;
 
     @NotBlank(message = "Currency is required")
     private String currency;

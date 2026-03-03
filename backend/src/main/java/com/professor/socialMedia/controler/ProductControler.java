@@ -77,7 +77,15 @@ public class ProductControler {
         Product product = new Product();
         product.setName(request.getName());
         product.setDescription(request.getDescription());
-        product.setPrice(request.getPrice());
+        product.setDiscountPercentage(request.getDiscountPercentage());
+        if (request.getPriority() != null) {
+            product.setPriority(request.getPriority());
+        } else {
+            product.setPriority(0);
+        }
+        if (request.getShowOnHomePage() != null) {
+            product.setShowOnHomePage(request.getShowOnHomePage());
+        }
         product.setCurrency(request.getCurrency());
         product.setStock(request.getStock());
         product.setMainImage(request.getMainImage());
@@ -119,8 +127,14 @@ public class ProductControler {
         if (request.getDescription() != null) {
             product.setDescription(request.getDescription());
         }
-        if (request.getPrice() != null) {
-            product.setPrice(request.getPrice());
+        if (request.getDiscountPercentage() != null) {
+            product.setDiscountPercentage(request.getDiscountPercentage());
+        }
+        if (request.getPriority() != null) {
+            product.setPriority(request.getPriority());
+        }
+        if (request.getShowOnHomePage() != null) {
+            product.setShowOnHomePage(request.getShowOnHomePage());
         }
         if (request.getCurrency() != null) {
             product.setCurrency(request.getCurrency());

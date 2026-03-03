@@ -81,8 +81,10 @@ export const api = {
     }
   },
   feedback: {
-    submit: async (message: string) => {
-      const { data } = await apiClient.post("/api/feedback", { message });
+    submit: async (message: string, name?: string) => {
+      const payload: any = { message };
+      if (name) payload.name = name;
+      const { data } = await apiClient.post("/api/feedback", payload);
       return data?.data || data || null;
     }
   }

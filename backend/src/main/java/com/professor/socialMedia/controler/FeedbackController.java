@@ -30,23 +30,33 @@ public class FeedbackController {
             @RequestBody Map<String, String> body) {
 
         try {
-            if (user == null) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
-                        ApiResponse.error("You must be logged in to submit feedback"));
-            }
-
-            User userEntity = userService.findByMobileNumber(user.getUsername()).orElseThrow(
-                    () -> new RuntimeException("User not found!"));
-
             String message = body.get("message");
             if (message == null || message.trim().isEmpty()) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
                         ApiResponse.error("Feedback message cannot be empty"));
             }
 
+            String[] words = message.trim().split("\\s+");
+            if (words.length > 100) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                        ApiResponse.error("Feedback message cannot exceed 100 words"));
+            }
+
             Feedback feedback = new Feedback();
-            feedback.setUserId(userEntity.getId());
             feedback.setMessage(message);
+
+            if (body.get("name") != null && !body.get("name").trim().isEmpty()) {
+                feedback.setName(body.get("name").trim());
+            }
+
+            if (user != null) {
+                userService.findByMobileNumber(user.getUsername()).ifPresent(userEntity -> {
+                    feedback.setUserId(userEntity.getId());
+                    if (feedback.getName() == null) {
+                        feedback.setName(userEntity.getName());
+                    }
+                });
+            }
 
             feedbackRepository.save(feedback);
 

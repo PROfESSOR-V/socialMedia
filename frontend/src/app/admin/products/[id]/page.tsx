@@ -18,7 +18,7 @@ export default function EditProductPage() {
   const [formData, setFormData] = useState({
     name: "",
     description: "",
-    price: "",
+    discountPercentage: "",
     stock: "",
     category: "",
     mainImage: "",
@@ -27,6 +27,8 @@ export default function EditProductPage() {
     benefits: "",
     ingredients: "",
     howToUse: "",
+    priority: "0",
+    showOnHomePage: false,
   });
 
   const [variants, setVariants] = useState<any[]>([]);
@@ -58,7 +60,7 @@ export default function EditProductPage() {
         setFormData({
           name: product.name || "",
           description: product.description || "",
-          price: product.price?.toString() || "",
+          discountPercentage: product.discountPercentage?.toString() || "",
           stock: product.quantity?.toString() || product.stock?.toString() || "0",
           category: categories.find((c: any) => c.id === product.categoryId)?.name || product.categoryId || "",
           mainImage: product.mainImage || "",
@@ -67,12 +69,14 @@ export default function EditProductPage() {
           benefits: product.benefits || "",
           ingredients: product.ingredients || "",
           howToUse: product.howToUse || "",
+          priority: product.priority?.toString() || "0",
+          showOnHomePage: product.showOnHomePage || false,
         });
         
         if (product.variants && Array.isArray(product.variants) && product.variants.length > 0) {
           setVariants(product.variants);
         } else {
-          setVariants([{ name: "", price: "", stock: "" }]);
+          setVariants([{ name: "", actualPrice: "", discountPrice: "", stock: "" }]);
         }
       } catch (err) {
         console.error(err);
@@ -96,7 +100,7 @@ export default function EditProductPage() {
   };
 
   const addVariant = () => {
-    setVariants([...variants, { name: "", price: "", stock: "" }]);
+    setVariants([...variants, { name: "", actualPrice: "", discountPrice: "", stock: "" }]);
   };
 
   const removeVariant = (index: number) => {
@@ -135,14 +139,15 @@ export default function EditProductPage() {
         .filter(v => typeof v.name === 'string' && v.name.trim() !== '')
         .map(v => ({
           name: v.name,
-          price: parseFloat(v.price) || 0,
+          actualPrice: parseFloat(v.actualPrice) || 0,
+          discountPrice: v.discountPrice ? parseFloat(v.discountPrice) : null,
           stock: parseInt(v.stock) || 0
         }));
 
       const payload = {
         name: formData.name,
         description: formData.description,
-        price: parseFloat(formData.price),
+        discountPercentage: formData.discountPercentage ? parseFloat(formData.discountPercentage) : null,
         stock: parseInt(formData.stock), 
         currency: "INR",
         categoryId: categories.find(c => c.name === formData.category)?.id || "",
@@ -152,6 +157,8 @@ export default function EditProductPage() {
         benefits: formData.benefits,
         ingredients: formData.ingredients,
         howToUse: formData.howToUse,
+        priority: parseInt(formData.priority) || 0,
+        showOnHomePage: formData.showOnHomePage,
         variants: parsedVariants.length > 0 ? parsedVariants : null
       };
 
@@ -377,12 +384,22 @@ export default function EditProductPage() {
                     </div>
                     <div className="flex gap-3">
                       <div className="flex-1">
-                        <label className="block text-xs font-medium text-zinc-700 mb-1">Price</label>
+                        <label className="block text-xs font-medium text-zinc-700 mb-1">Actual Price</label>
                         <input
                           type="number"
-                          value={variant.price || ''}
-                          onChange={(e) => handleVariantChange(index, "price", e.target.value)}
-                          placeholder="Price"
+                          value={variant.actualPrice || ''}
+                          onChange={(e) => handleVariantChange(index, "actualPrice", e.target.value)}
+                          placeholder="0.00"
+                          className="w-full px-2.5 py-1.5 border border-zinc-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-black"
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <label className="block text-xs font-medium text-zinc-700 mb-1">Discount Price (Optional)</label>
+                        <input
+                          type="number"
+                          value={variant.discountPrice || ''}
+                          onChange={(e) => handleVariantChange(index, "discountPrice", e.target.value)}
+                          placeholder="0.00"
                           className="w-full px-2.5 py-1.5 border border-zinc-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-black"
                         />
                       </div>
@@ -420,19 +437,19 @@ export default function EditProductPage() {
           <div className="bg-white p-6 rounded-2xl border border-zinc-200 shadow-sm space-y-4">
             <h2 className="text-base font-semibold text-zinc-900 mb-6">Pricing</h2>
             <div>
-              <label className="block text-sm font-medium text-zinc-700 mb-1.5" htmlFor="price">
-                Price (Rs.) <span className="text-red-500">*</span>
+              <label className="block text-sm font-medium text-zinc-700 mb-1.5" htmlFor="discountPercentage">
+                Discount Percentage (%)
               </label>
               <input
-                id="price"
-                name="price"
-                required
+                id="discountPercentage"
+                name="discountPercentage"
                 type="number"
-                step="1"
+                step="0.1"
                 min="0"
-                value={formData.price}
+                max="100"
+                value={formData.discountPercentage}
                 onChange={handleChange}
-                placeholder="0"
+                placeholder="15"
                 className="w-full px-3 py-2 border border-zinc-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-black"
               />
             </div>
@@ -476,6 +493,36 @@ export default function EditProductPage() {
                   <option key={cat.id} value={cat.name}>{cat.name}</option>
                 ))}
               </select>
+            </div>
+
+            <div className="pt-2">
+              <label className="block text-sm font-medium text-zinc-700 mb-1.5" htmlFor="priority">
+                Display Priority
+              </label>
+              <input
+                id="priority"
+                name="priority"
+                type="number"
+                value={formData.priority}
+                onChange={handleChange}
+                placeholder="0"
+                className="w-full px-3 py-2 border border-zinc-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-black"
+              />
+              <p className="mt-1 text-xs text-zinc-500">Higher numbers appear first.</p>
+            </div>
+
+            <div className="flex items-center gap-2 pt-2">
+              <input
+                type="checkbox"
+                id="showOnHomePage"
+                name="showOnHomePage"
+                checked={formData.showOnHomePage}
+                onChange={(e) => setFormData(prev => ({ ...prev, showOnHomePage: e.target.checked }))}
+                className="w-4 h-4 text-black border-zinc-300 rounded focus:ring-black"
+              />
+              <label className="text-sm font-medium text-zinc-700" htmlFor="showOnHomePage">
+                Show on Home Page
+              </label>
             </div>
           </div>
 

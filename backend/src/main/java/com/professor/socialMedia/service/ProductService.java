@@ -9,34 +9,33 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 
-
 @Service
 public class ProductService {
 
     @Autowired
     private ProductRepository productRepository;
 
-    public Product create(Product product){
+    public Product create(Product product) {
         return productRepository.save(product);
     }
 
-    public Optional<Product> findById(ObjectId id){
+    public Optional<Product> findById(ObjectId id) {
         return productRepository.findById(id);
     }
 
-    public List<Product> findAllActive(){
-        return  productRepository.findByActiveTrue();
+    public List<Product> findAllActive() {
+        return productRepository.findByActiveTrueOrderByPriorityDesc();
     }
 
-    public List<Product> findAll(){
-        return productRepository.findAll();
+    public List<Product> findAll() {
+        return productRepository.findAllByOrderByPriorityDesc();
     }
 
-    public Product update(Product product){
+    public Product update(Product product) {
         return productRepository.save(product);
     }
 
-    public void disable(ObjectId id){
+    public void disable(ObjectId id) {
         Product product = productRepository.findById(id).orElseThrow();
         product.setActive(!product.getActive()); // Toggle active status
         productRepository.save(product);
