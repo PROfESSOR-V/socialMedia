@@ -7,8 +7,16 @@ import { Star, ArrowRight } from "lucide-react";
 import { useState, useEffect } from "react";
 import apiClient from "@/lib/apiClient";
 
+const fallbackProduct = {
+  id: "fallback-serum",
+  name: "Vitamin C Face Serum",
+  category: "Face Serum",
+  price: 599,
+  mainImage: "/assets/1000334016.png",
+};
+
 export default function TestimonialProduct() {
-  const [product, setProduct] = useState<any>(null);
+  const [product, setProduct] = useState<any>(fallbackProduct);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -17,15 +25,15 @@ export default function TestimonialProduct() {
         const productList = Array.isArray(data) ? data : data?.data || data?.products || [];
         // Try to find a serum, or just take the first product
         const serum = productList.find((p: any) => p.category?.toLowerCase().includes('serum') || p.categoryId === 'Face Serum') || productList[0];
-        setProduct(serum);
+        if (serum) {
+            setProduct(serum);
+        }
       } catch (err) {
         console.error("Failed to fetch product", err);
       }
     };
     fetchProduct();
   }, []);
-
-  if (!product) return null;
 
   return (
     <section className="py-24 bg-[#f2f2ef] overflow-hidden relative">

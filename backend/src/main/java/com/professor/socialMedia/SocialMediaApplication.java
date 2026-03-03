@@ -8,8 +8,11 @@ import org.springframework.data.mongodb.MongoTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
+import org.springframework.cache.annotation.EnableCaching;
+
 @SpringBootApplication
 @EnableTransactionManagement
+@EnableCaching
 public class SocialMediaApplication {
 
 	public static void main(String[] args) {

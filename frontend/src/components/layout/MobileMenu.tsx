@@ -40,7 +40,7 @@ export default function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
           initial="closed"
           animate="open"
           exit="closed"
-          className="absolute top-[84px] left-0 right-0 bg-white rounded-xl shadow-xl border border-black/5 z-40 overflow-hidden lg:hidden"
+          className="w-full mt-2 bg-white rounded-2xl shadow-xl border border-black/5 z-40 overflow-hidden lg:hidden"
         >
           <div className="flex flex-col py-2">
             <Link 

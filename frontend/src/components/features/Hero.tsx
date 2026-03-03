@@ -52,7 +52,7 @@ export default function Hero() {
   };
 
   return (
-    <section className="relative h-[65vh] md:h-screen w-full overflow-hidden bg-[#EAE8E4]">
+    <section className="relative h-[55vh] md:h-screen w-full overflow-hidden bg-[#EAE8E4]">
       <AnimatePresence mode="wait">
         <motion.div
           key={currentSlide}

@@ -18,6 +18,7 @@ export default function Header() {
   
   // Random 2 products for the menu
   const [randomProducts, setRandomProducts] = useState<any[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
   
   // Scroll Logic
   const [isVisible, setIsVisible] = useState(true);
@@ -34,7 +35,17 @@ export default function Header() {
         console.error("Failed to fetch products for header", err);
       }
     };
+    const fetchCategories = async () => {
+      try {
+        const { data } = await apiClient.get("/api/categories");
+        const catList = Array.isArray(data) ? data : data?.data || [];
+        setCategories(catList.map((c: any) => c.name).filter(Boolean));
+      } catch (err) {
+        console.error("Failed to fetch categories for header", err);
+      }
+    };
     fetchProducts();
+    fetchCategories();
 
     const handleScroll = () => {
         const currentScrollY = window.scrollY;
@@ -62,7 +73,7 @@ export default function Header() {
         )}
     >
       <header
-        className="w-full h-[72px] bg-white rounded-md shadow-sm border border-black/5 flex items-center justify-between px-4 lg:px-6 transition-all duration-300 relative z-50"
+        className="w-full h-16 md:h-20 bg-white rounded-2xl shadow-sm border border-black/5 flex items-center justify-between px-4 lg:px-6 transition-all duration-300 relative z-50"
       >
         {/* Left Nav */}
         <nav className="hidden lg:flex items-center gap-6 h-full">
@@ -72,7 +83,8 @@ export default function Header() {
             </button>
             
             {/* Hover Menu - Refined Layout */}
-            <div className="absolute top-full left-0 w-[800px] bg-white rounded-xl shadow-xl border border-black/5 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 z-50 overflow-hidden flex p-8 gap-8">
+            <div className="absolute top-full left-0 pt-3 z-50 pointer-events-none group-hover:pointer-events-auto">
+              <div className="w-[800px] bg-white rounded-xl shadow-xl border border-black/5 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 overflow-hidden flex p-8 gap-8">
                 
                 {/* Left Sidebar */}
                 <div className="w-1/4 flex flex-col pt-2 border-r border-zinc-100 pr-6">
@@ -120,12 +132,33 @@ export default function Header() {
                         </Link>
                     ))}
                 </div>
+              </div>
             </div>
           </div>
 
-          <Link href="#" className="text-sm font-medium text-foreground hover:text-black/70 transition-colors flex items-center gap-1">
-            Collections <span className="text-[10px]">+</span>
-          </Link>
+          {/* Collections Dropdown */}
+          <div className="relative group h-full flex items-center">
+            <button className="text-sm font-medium text-foreground hover:text-black/70 transition-colors flex items-center gap-1 py-4 cursor-default">
+              Collections <span className="text-[10px]">+</span>
+            </button>
+            
+            <div className="absolute top-full left-0 pt-3 z-50 pointer-events-none group-hover:pointer-events-auto">
+              <div className="w-[240px] bg-white rounded-xl shadow-xl border border-black/5 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 overflow-hidden p-6">
+                <h4 className="font-serif text-xl italic mb-4 text-zinc-900">Collections</h4>
+                <nav className="flex flex-col space-y-3">
+                  {categories.map((cat) => (
+                    <Link 
+                      key={cat} 
+                      href={`/products?category=${encodeURIComponent(cat)}`} 
+                      className="text-[15px] font-medium text-zinc-600 hover:text-black transition-colors block"
+                    >
+                      {cat}
+                    </Link>
+                  ))}
+                </nav>
+              </div>
+            </div>
+          </div>
           <Link href="#" className="text-sm font-medium text-foreground hover:text-black/70 transition-colors">
             About
           </Link>
@@ -140,7 +173,7 @@ export default function Header() {
         {/* Center Logo (Desktop) / Left Logo (Mobile) */}
         <Link 
           href="/" 
-          className="lg:absolute lg:left-1/2 lg:top-1/2 lg:-translate-x-1/2 lg:-translate-y-1/2 font-serif text-2xl font-medium tracking-tight text-black"
+          className="lg:absolute lg:left-1/2 lg:top-1/2 lg:-translate-x-1/2 lg:-translate-y-1/2 font-serif text-xl md:text-2xl font-medium tracking-tight text-black"
         >
           AÚRELYÑ
         </Link>
@@ -175,23 +208,23 @@ export default function Header() {
           </button>
           
           <Link href={user ? (user.role === "ADMIN" ? "/admin" : "/profile") : "/login"} className="hover:text-black transition-colors">
-            <User className="h-4 w-4" />
+            <User className="h-5 w-5" />
           </Link>
           
           <button className="hover:text-black transition-colors">
-            <Search className="h-4 w-4" />
+            <Search className="h-5 w-5" />
           </button>
 
           <button className="hover:text-black transition-colors lg:hidden">
-            <Heart className="h-4 w-4" />
+            <Heart className="h-5 w-5" />
           </button>
           
           <Link href="/orders" className="hover:text-black transition-colors">
-            <Package className="h-4 w-4" />
+            <Package className="h-5 w-5" />
           </Link>
 
           <button onClick={toggleCart} className="relative hover:text-black transition-colors">
-            <ShoppingBag className="h-4 w-4" />
+            <ShoppingBag className="h-5 w-5" />
             <AnimatePresence>
               {cartCount > 0 && (
                 <motion.span

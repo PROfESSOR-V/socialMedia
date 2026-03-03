@@ -15,6 +15,20 @@ export default function ProductCategories({ initialProducts = [], initialCategor
   const [products, setProducts] = useState<any[]>(initialProducts.length > 0 ? initialProducts : (cachedProducts || []));
   const [categories, setCategories] = useState<string[]>(initialCategories.length > 1 ? initialCategories : (cachedCategories || ["All"]));
   const [loading, setLoading] = useState(products.length === 0);
+  const [mobileCols, setMobileCols] = useState(1);
+
+  useEffect(() => {
+    // Fetch mobile layout setting
+    const fetchSettings = async () => {
+      try {
+        const { data } = await apiClient.get("/api/settings/mobileProductsPerRow");
+        if (data && data.value) setMobileCols(parseInt(data.value.toString()));
+      } catch (err) {
+        // silently ignore - default to 1 col
+      }
+    };
+    fetchSettings();
+  }, []);
 
   useEffect(() => {
     // If we already have cached data, don't fetch again
@@ -85,7 +99,7 @@ export default function ProductCategories({ initialProducts = [], initialCategor
            </div>
          </motion.div>
 
-        <motion.div layout className="grid grid-cols-1 gap-6 sm:gap-8 sm:grid-cols-2 lg:grid-cols-4 max-w-[340px] sm:max-w-none mx-auto">
+        <motion.div layout className={`grid gap-6 sm:gap-8 sm:grid-cols-2 lg:grid-cols-4 mx-auto ${mobileCols === 2 ? 'grid-cols-2 gap-x-3' : 'grid-cols-1 max-w-[340px] sm:max-w-none'}`}>
           <AnimatePresence mode="popLayout">
             {loading ? (
                <div className="col-span-full py-20 flex justify-center items-center">
@@ -121,9 +135,11 @@ export default function ProductCategories({ initialProducts = [], initialCategor
                             )}
 
                              {/* Sale Badge */}
-                            <div className="absolute top-3 right-3 bg-zinc-900/90 text-white text-[10px] uppercase font-bold px-2 py-1 rounded z-30">
-                                {Math.round(((product.price + 100 - product.price) / (product.price + 100)) * 100)}% OFF
-                            </div>
+                             {product.discountPercentage > 0 && (
+                                <div className="absolute top-3 right-3 bg-zinc-900/90 text-white text-[10px] uppercase font-bold px-2 py-1 rounded z-30">
+                                    {product.discountPercentage}% OFF
+                                </div>
+                             )}
                              <div className="absolute top-3 left-3 z-30">
                                  <button className="p-2 rounded-full bg-white/80 hover:bg-white text-zinc-900 transition-colors">
                                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-heart"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
@@ -135,9 +151,16 @@ export default function ProductCategories({ initialProducts = [], initialCategor
                             <h3 className="font-serif text-base md:text-lg text-zinc-900 mb-1 group-hover:text-black/70 transition-colors leading-tight line-clamp-2">
                                 {product.name}
                             </h3>
-                             <p className="text-sm md:text-sm text-zinc-600 mb-2 font-medium">
-                                Rs. {formatPrice(product.price)}
-                             </p>
+                             <div className="flex items-center justify-center gap-2 mb-2 font-medium">
+                                {product.variants?.[0]?.actualPrice && product.variants?.[0]?.actualPrice > (product.variants?.[0]?.discountPrice || 0) && (
+                                   <span className="text-sm text-zinc-400 line-through">
+                                      Rs. {formatPrice(product.variants[0].actualPrice)}
+                                   </span>
+                                )}
+                                <span className="text-sm md:text-sm text-zinc-900">
+                                   Rs. {formatPrice(product.variants?.[0]?.discountPrice || product.price || 0)}
+                                </span>
+                             </div>
                         </div>
                     </div>
                 </Link>

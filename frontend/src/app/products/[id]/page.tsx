@@ -39,7 +39,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
 
   if (loading) {
      return (
-        <div className="flex justify-center items-center py-40 min-h-screen bg-[#f9f9f9]">
+        <div className="flex justify-center items-center py-40 min-h-screen bg-[#f2f2ef]">
            <Loader2 className="w-12 h-12 animate-spin text-zinc-400" />
         </div>
      );
@@ -93,7 +93,8 @@ export default function ProductPage({ params }: { params: { id: string } }) {
   };
 
   return (
-    <div className="container mx-auto px-4 py-12 pt-32 sm:px-6 lg:px-8 bg-[#f9f9f9] min-h-screen">
+    <div className="min-h-screen bg-[#f2f2ef]">
+    <div className="container mx-auto px-4 py-12 pt-32 sm:px-6 lg:px-8">
       <div className="grid grid-cols-1 gap-12 lg:grid-cols-2 lg:gap-20 items-start">
         {/* Product Image Section */}
         <motion.div
@@ -103,10 +104,13 @@ export default function ProductPage({ params }: { params: { id: string } }) {
             className="md:sticky md:top-24"
         >
             <div className="relative aspect-[4/5] w-full overflow-hidden rounded-2xl bg-[#e8e8e1]">
-              <img
+              <Image
                 src={allImages.length > 0 ? allImages[currentImageIndex] : "https://placehold.co/400x500/e8e8e1/a0a096?text=Image+Not+Found"}
-                alt={product.name}
-                className="w-full h-full object-contain p-8 md:p-12 transition-all duration-700 mix-blend-multiply"
+                alt={product.name || "Product Image"}
+                fill
+                priority
+                sizes="(max-width: 768px) 100vw, 50vw"
+                className="object-contain p-8 md:p-12 transition-all duration-700 mix-blend-multiply"
               />
               <div className="absolute top-4 left-4 bg-white px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider z-10">
                   Best Seller
@@ -133,16 +137,30 @@ export default function ProductPage({ params }: { params: { id: string } }) {
               )}
             </div>
             
-            {/* Thumbnail/Gallery Placeholder */}
+            {/* Dot indicators for mobile */}
             {allImages.length > 1 && (
-              <div className="mt-4 flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+              <div className="flex md:hidden justify-center gap-2 mt-4">
+                {allImages.map((_: string, idx: number) => (
+                  <button
+                    key={idx}
+                    onClick={() => setCurrentImageIndex(idx)}
+                    className={`rounded-full transition-all duration-300 ${currentImageIndex === idx ? 'w-6 h-2 bg-zinc-900' : 'w-2 h-2 bg-zinc-300'}`}
+                    aria-label={`Go to image ${idx + 1}`}
+                  />
+                ))}
+              </div>
+            )}
+
+            {/* Thumbnail gallery for desktop */}
+            {allImages.length > 1 && (
+              <div className="hidden md:flex mt-4 gap-4 overflow-x-auto pb-2 scrollbar-hide">
                    {allImages.map((imgUrl: string, idx: number) => (
                      <div 
                         key={idx} 
                         onClick={() => setCurrentImageIndex(idx)}
                         className={`relative w-20 h-20 rounded-lg overflow-hidden border-2 cursor-pointer bg-[#e8e8e1] shrink-0 transition-colors ${currentImageIndex === idx ? 'border-black' : 'border-transparent hover:border-zinc-300'}`}
                      >
-                        <img src={imgUrl} alt={`thumb ${idx}`} className="w-full h-full object-contain p-2 mix-blend-multiply" />
+                        <Image src={imgUrl} alt={`thumb ${idx}`} fill sizes="80px" className="object-contain p-2 mix-blend-multiply" />
                      </div>
                    ))}
               </div>
@@ -248,68 +266,60 @@ export default function ProductPage({ params }: { params: { id: string } }) {
           </div>
 
           {/* Feature Icons */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+          <div className="grid grid-cols-4 gap-3 mb-10">
               {[
                   { icon: Leaf, label: "100% Natural" },
                   { icon: Rabbit, label: "Cruelty Free" },
                   { icon: Droplets, label: "Eco Friendly" },
                   { icon: Info, label: "Expert Approved" },
               ].map((item, idx) => (
-                  <div key={idx} className="flex flex-col items-center justify-center p-4 bg-zinc-100 rounded-xl text-center gap-2">
+                  <div key={idx} className="flex flex-col items-center justify-center p-4 bg-white rounded-xl border border-zinc-200 text-center gap-2">
                        <item.icon className="w-6 h-6 text-zinc-700" />
-                       <span className="text-xs font-medium text-zinc-600 max-w-[80px] leading-tight">{item.label}</span>
+                       <span className="text-[11px] font-medium text-zinc-600 max-w-[80px] leading-tight">{item.label}</span>
                   </div>
               ))}
           </div>
 
-          {/* Accordions */}
-          <div className="space-y-4">
-            <details className="group bg-white rounded-xl border border-zinc-100 overflow-hidden">
-              <summary className="flex cursor-pointer items-center justify-between font-medium text-zinc-900 p-5 hover:bg-zinc-50 transition-colors marker:content-none select-none">
-                <span className="text-lg font-serif">Details</span>
-                <span className="transition-transform duration-300 group-open:rotate-180">
-                  <Plus className="h-5 w-5 text-zinc-400" />
-                </span>
+          {/* Accordions - Kanva Style */}
+          <div className="bg-white rounded-2xl border border-zinc-200 overflow-hidden divide-y divide-zinc-200">
+            <details className="group">
+              <summary className="flex cursor-pointer items-center justify-between font-medium text-zinc-900 px-6 py-5 hover:bg-zinc-50/50 transition-colors marker:content-none [&::-webkit-details-marker]:hidden select-none">
+                <span className="text-base font-medium">Details</span>
+                <Plus className="h-5 w-5 text-zinc-400 transition-transform duration-300 group-open:rotate-45" />
               </summary>
-              <div className="px-5 pb-5 pt-0 text-zinc-600 leading-relaxed text-sm whitespace-pre-line">
+              <div className="px-6 pb-5 pt-0 text-zinc-600 leading-relaxed text-sm whitespace-pre-line">
                 <p>
                     {product.benefits || `${product.name} is designed to meet the highest standards of clean beauty. Formulated without parabens, sulfates, or artificial fragrances. Perfect for sensitive skin types.`}
                 </p>
               </div>
             </details>
 
-            <details className="group bg-white rounded-xl border border-zinc-100 overflow-hidden">
-              <summary className="flex cursor-pointer items-center justify-between font-medium text-zinc-900 p-5 hover:bg-zinc-50 transition-colors marker:content-none select-none">
-                <span className="text-lg font-serif">How to Use</span>
-                <span className="transition-transform duration-300 group-open:rotate-180">
-                  <Plus className="h-5 w-5 text-zinc-400" />
-                </span>
+            <details className="group">
+              <summary className="flex cursor-pointer items-center justify-between font-medium text-zinc-900 px-6 py-5 hover:bg-zinc-50/50 transition-colors marker:content-none [&::-webkit-details-marker]:hidden select-none">
+                <span className="text-base font-medium">How to Use</span>
+                <Plus className="h-5 w-5 text-zinc-400 transition-transform duration-300 group-open:rotate-45" />
               </summary>
-              <div className="px-5 pb-5 pt-0 text-zinc-600 leading-relaxed text-sm whitespace-pre-line">
+              <div className="px-6 pb-5 pt-0 text-zinc-600 leading-relaxed text-sm whitespace-pre-line">
                 <p>{product.howToUse || "Apply a small amount to clean skin. Massage gently."}</p>
               </div>
             </details>
 
-             <details className="group bg-white rounded-xl border border-zinc-100 overflow-hidden">
-              <summary className="flex cursor-pointer items-center justify-between font-medium text-zinc-900 p-5 hover:bg-zinc-50 transition-colors marker:content-none select-none">
-                <span className="text-lg font-serif">Ingredients</span>
-                <span className="transition-transform duration-300 group-open:rotate-180">
-                  <Plus className="h-5 w-5 text-zinc-400" />
-                </span>
+            <details className="group">
+              <summary className="flex cursor-pointer items-center justify-between font-medium text-zinc-900 px-6 py-5 hover:bg-zinc-50/50 transition-colors marker:content-none [&::-webkit-details-marker]:hidden select-none">
+                <span className="text-base font-medium">Ingredients</span>
+                <Plus className="h-5 w-5 text-zinc-400 transition-transform duration-300 group-open:rotate-45" />
               </summary>
-              <div className="px-5 pb-5 pt-0 text-zinc-600 leading-relaxed text-sm whitespace-pre-line">
+              <div className="px-6 pb-5 pt-0 text-zinc-600 leading-relaxed text-sm whitespace-pre-line">
                 <p>{product.ingredients || "Aqua, Glycerin, Natural Oils, Vitamin E."}</p>
               </div>
             </details>
 
-            <details className="group bg-white rounded-xl border border-zinc-100 overflow-hidden">
-              <summary className="flex cursor-pointer items-center justify-between font-medium text-zinc-900 p-5 hover:bg-zinc-50 transition-colors marker:content-none select-none">
-                <span className="text-lg font-serif">Delivery & Returns</span>
-                <span className="transition-transform duration-300 group-open:rotate-180">
-                  <Plus className="h-5 w-5 text-zinc-400" />
-                </span>
+            <details className="group">
+              <summary className="flex cursor-pointer items-center justify-between font-medium text-zinc-900 px-6 py-5 hover:bg-zinc-50/50 transition-colors marker:content-none [&::-webkit-details-marker]:hidden select-none">
+                <span className="text-base font-medium">Delivery & Returns</span>
+                <Plus className="h-5 w-5 text-zinc-400 transition-transform duration-300 group-open:rotate-45" />
               </summary>
-              <div className="px-5 pb-5 pt-0 text-zinc-600 leading-relaxed text-sm">
+              <div className="px-6 pb-5 pt-0 text-zinc-600 leading-relaxed text-sm">
                 <p>
                     Free standard delivery on orders over Rs. 50. 
                     Returns accepted within 14 days of delivery.
@@ -330,6 +340,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
                </div>
           </div>
       </div>
+    </div>
     </div>
   );
 }

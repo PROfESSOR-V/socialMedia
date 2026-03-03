@@ -1,16 +1,18 @@
+import dynamic from 'next/dynamic';
+
 import Hero from "@/components/features/Hero";
-import ProductCategories from "@/components/features/ProductCategories";
-import TrustSection from "@/components/features/TrustSection";
-import Testimonial from "@/components/features/Testimonial";
-import Highlights from "@/components/features/Highlights";
-import AestheticText from "@/components/features/AestheticText";
-import LowerBanner from "@/components/features/LowerBanner";
+import { AnimatedSection } from "@/components/ui/AnimatedSection";
 import Footer from "@/components/layout/Footer"; // Explicit import
 
-import WhyChooseUs from "@/components/features/WhyChooseUs";
-import TestimonialProduct from "@/components/features/TestimonialProduct";
-import Newsletter from "@/components/features/Newsletter";
-import { AnimatedSection } from "@/components/ui/AnimatedSection";
+const ProductCategories = dynamic(() => import("@/components/features/ProductCategories"));
+const TrustSection = dynamic(() => import("@/components/features/TrustSection"));
+const Testimonial = dynamic(() => import("@/components/features/Testimonial"));
+const Highlights = dynamic(() => import("@/components/features/Highlights"));
+const AestheticText = dynamic(() => import("@/components/features/AestheticText"));
+const LowerBanner = dynamic(() => import("@/components/features/LowerBanner"));
+const WhyChooseUs = dynamic(() => import("@/components/features/WhyChooseUs"));
+const TestimonialProduct = dynamic(() => import("@/components/features/TestimonialProduct"));
+const Newsletter = dynamic(() => import("@/components/features/Newsletter"));
 
 export default function Home() {
   return (
