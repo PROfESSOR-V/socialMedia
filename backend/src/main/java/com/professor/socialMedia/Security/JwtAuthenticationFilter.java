@@ -33,6 +33,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String authToken = request.getHeader("Authorization");
 
+        // Try to read token from cookie if header is missing
+        if (authToken == null || !authToken.startsWith("Bearer ")) {
+            if (request.getCookies() != null) {
+                for (jakarta.servlet.http.Cookie cookie : request.getCookies()) {
+                    if ("token".equals(cookie.getName())) {
+                        authToken = "Bearer " + cookie.getValue();
+                        break;
+                    }
+                }
+            }
+        }
+
         // 1. Check if token is missing or invalid format
         if (authToken == null || !authToken.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
