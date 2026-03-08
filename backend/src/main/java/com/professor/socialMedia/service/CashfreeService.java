@@ -47,7 +47,7 @@ public class CashfreeService {
                                 customerPhone != null && !customerPhone.isEmpty() ? customerPhone : "9999999999"));
 
                 Map<String, Object> orderMeta = new HashMap<>();
-                orderMeta.put("notify_url", "https://socialmedia-0qzd.onrender.com/api/payments/webhook");
+                orderMeta.put("notify_url", "https://api.aurelynbeauty.com/api/payments/webhook");
                 if (returnUrl != null && !returnUrl.isEmpty()) {
                         orderMeta.put("return_url", returnUrl + "?order_id=" + order.getId().toString());
                 }
