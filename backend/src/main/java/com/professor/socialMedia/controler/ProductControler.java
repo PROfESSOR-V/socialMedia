@@ -97,6 +97,7 @@ public class ProductControler {
         product.setHowToUse(request.getHowToUse());
         product.setCategoryId(new ObjectId(request.getCategoryId()));
         product.setVariants(request.getVariants());
+        product.setFaqs(request.getFaqs());
 
         Product created = productService.create(product);
         ProductDto productDto = productMapper.mapProduct(created);
@@ -166,6 +167,9 @@ public class ProductControler {
         }
         if (request.getVariants() != null) {
             product.setVariants(request.getVariants());
+        }
+        if (request.getFaqs() != null) {
+            product.setFaqs(request.getFaqs());
         }
 
         Product updated = productService.update(product);
