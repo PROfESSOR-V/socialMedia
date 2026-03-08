@@ -7,6 +7,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.ArrayList;
 
 @Document(collection = "products")
 @Data
@@ -25,6 +26,7 @@ public class Product {
     private List<String> images;
 
     private List<ProductVariant> variants;
+    private List<ProductFaq> faqs = new ArrayList<>();
 
     // Rich Text Fields
     private String benefits;

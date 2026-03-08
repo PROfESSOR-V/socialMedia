@@ -16,13 +16,23 @@ public class CloudinaryService {
     private Cloudinary cloudinary;
 
     public String uploadImage(MultipartFile file) throws IOException {
-        Map uploadResult = cloudinary.uploader().upload(
+        @SuppressWarnings("unchecked")
+        Map<String, Object> uploadResult = cloudinary.uploader().upload(
                 file.getBytes(),
                 ObjectUtils.asMap(
                         "folder", "products",
-                        "resource_type", "image"
-                )
-        );
+                        "resource_type", "image"));
+
+        return uploadResult.get("secure_url").toString();
+    }
+
+    public String uploadVideo(MultipartFile file) throws IOException {
+        @SuppressWarnings("unchecked")
+        Map<String, Object> uploadResult = cloudinary.uploader().upload(
+                file.getBytes(),
+                ObjectUtils.asMap(
+                        "folder", "testimonials",
+                        "resource_type", "video"));
 
         return uploadResult.get("secure_url").toString();
     }
