@@ -75,7 +75,9 @@ public class OrderControler {
                                         ApiResponse.error("Order not found"));
                 }
                 // Check if the order belongs to the current user or if the user is an ADMIN
-                if (!order.getUserId().equals(userEntity.getId()) && !userEntity.getRole().name().equals("ADMIN")) {
+                boolean isAdmin = user.getAuthorities().stream()
+                        .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+                if (!order.getUserId().equals(userEntity.getId()) && !isAdmin) {
                         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
                                         ApiResponse.error("You don't have permission to view this order"));
                 }

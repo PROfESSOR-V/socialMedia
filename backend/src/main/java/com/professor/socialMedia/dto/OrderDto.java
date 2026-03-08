@@ -1,6 +1,8 @@
 package com.professor.socialMedia.dto;
 
+import com.professor.socialMedia.entity.Address;
 import com.professor.socialMedia.entity.OrderStatus;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -18,6 +20,8 @@ public class OrderDto {
     private Double totalAmount;
     private OrderStatus status;
     private com.professor.socialMedia.entity.ShipmentInfo shipment;
+    private Address shippingAddress;
+    private String paymentId;
 
     // Additional tracking fields
     private String paymentStatus;

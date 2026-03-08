@@ -97,7 +97,9 @@ public class ProductControler {
         product.setHowToUse(request.getHowToUse());
         product.setCategoryId(new ObjectId(request.getCategoryId()));
         product.setVariants(request.getVariants());
-        product.setFaqs(request.getFaqs());
+        if (request.getFaqs() != null) {
+            product.setFaqs(request.getFaqs());
+        }
 
         Product created = productService.create(product);
         ProductDto productDto = productMapper.mapProduct(created);

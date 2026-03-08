@@ -93,8 +93,8 @@ public class CartControler {
                 return ResponseEntity.ok(ApiResponse.success("Item removed from cart successfully", cartDto));
         }
 
-        @DeleteMapping("/items")
-        public ResponseEntity<ApiResponse<Void>> deleteItem(@AuthenticationPrincipal CustomUserDetail user) {
+        @DeleteMapping("/items/all")
+        public ResponseEntity<ApiResponse<Void>> clearCart(@AuthenticationPrincipal CustomUserDetail user) {
                 User userEntity = userService.findByMobileNumber(user.getUsername()).orElseThrow(
                                 () -> new RuntimeException("User not found!"));
                 cartService.clearCart(userEntity.getId());

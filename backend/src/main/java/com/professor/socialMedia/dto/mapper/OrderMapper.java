@@ -49,7 +49,10 @@ public class OrderMapper {
         orderDto.setCancelReason(order.getCancelReason());
 
         orderDto.setShipment(order.getShipment());
+        orderDto.setShippingAddress(order.getShippingAddress());
+        orderDto.setPaymentId(order.getPaymentId() != null ? order.getPaymentId().toString() : null);
         orderDto.setCreatedAt(order.getCreatedAt());
+        orderDto.setUpdatedAt(order.getUpdatedAt());
 
         // Map Customer Details
         userRepository.findById(order.getUserId()).ifPresent(user -> {

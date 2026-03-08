@@ -39,5 +39,6 @@ public class Order {
     private String cancelReason;
 
     private Instant createdAt = Instant.now();
+    private Instant updatedAt = Instant.now();
 
 }

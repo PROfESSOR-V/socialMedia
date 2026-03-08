@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -49,17 +50,21 @@ public class AuthControler {
     }
 
     @PostMapping("/login")
-    public AuthResponse login(@RequestBody LoginRequest req) {
-        Authentication auth = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        req.getMobileNumber(), req.getPassword()));
+    public ResponseEntity<?> login(@RequestBody LoginRequest req) {
+        try {
+            Authentication auth = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            req.getMobileNumber(), req.getPassword()));
 
-        CustomUserDetail user = (CustomUserDetail) auth.getPrincipal();
+            CustomUserDetail user = (CustomUserDetail) auth.getPrincipal();
+            User userEntity = userService.findByMobileNumber(req.getMobileNumber()).orElse(null);
+            String role = userEntity != null ? userEntity.getRole().toString() : "CUSTOMER";
 
-        User userEntity = userService.findByMobileNumber(req.getMobileNumber()).orElse(null);
-        String role = userEntity != null ? userEntity.getRole().toString() : "CUSTOMER";
-
-        return new AuthResponse(jwtService.generateToken(user), role);
+            return ResponseEntity.ok(new AuthResponse(jwtService.generateToken(user), role));
+        } catch (BadCredentialsException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(java.util.Map.of("message", "Invalid mobile number or password"));
+        }
     }
 
 }

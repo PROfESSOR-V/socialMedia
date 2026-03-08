@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import com.professor.socialMedia.entity.ProductFaq;
 import com.professor.socialMedia.entity.ProductVariant;
 
 import java.util.List;
@@ -28,5 +29,5 @@ public class UpdateProductRequest {
     private String howToUse;
     private String categoryId;
     private List<ProductVariant> variants;
-    private List<com.professor.socialMedia.entity.ProductFaq> faqs;
+    private List<ProductFaq> faqs;
 }

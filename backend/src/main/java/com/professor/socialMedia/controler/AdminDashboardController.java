@@ -1,6 +1,7 @@
 package com.professor.socialMedia.controler;
 
 import com.professor.socialMedia.entity.Order;
+import com.professor.socialMedia.entity.PaymentStatus;
 import com.professor.socialMedia.repository.OrderRepository;
 import com.professor.socialMedia.repository.ProductRepository;
 import com.professor.socialMedia.repository.UserRepository;
@@ -38,6 +39,7 @@ public class AdminDashboardController {
 
         long totalOrders = allOrders.size();
         double totalRevenue = allOrders.stream()
+                .filter(o -> o.getPaymentStatus() == PaymentStatus.SUCCESS)
                 .mapToDouble(Order::getTotalAmount)
                 .sum();
 
