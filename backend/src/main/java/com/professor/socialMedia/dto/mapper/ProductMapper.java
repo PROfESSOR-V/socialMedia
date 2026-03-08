@@ -42,6 +42,7 @@ public class ProductMapper {
         dto.setPriority(product.getPriority());
         dto.setShowOnHomePage(product.isShowOnHomePage());
         dto.setVariants(product.getVariants());
+        dto.setFaqs(product.getFaqs());
         return dto;
     }
 }

@@ -32,4 +32,5 @@ public class ProductDto {
     private Integer priority;
     private Boolean showOnHomePage;
     private List<ProductVariant> variants;
+    private List<com.professor.socialMedia.entity.ProductFaq> faqs;
 }
