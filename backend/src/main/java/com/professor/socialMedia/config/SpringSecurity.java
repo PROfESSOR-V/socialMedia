@@ -34,6 +34,9 @@ public class SpringSecurity {
                                                                 org.springframework.http.HttpMethod.GET, "/api/settings/**"
                                                 ).permitAll()
                                                 .requestMatchers(
+                                                                org.springframework.http.HttpMethod.GET, "/api/testvideos", "/api/testvideos/**"
+                                                ).permitAll()
+                                                .requestMatchers(
                                                                 "/auth/**",
                                                                 "/api/products",
                                                                 "/api/products/{id}",
