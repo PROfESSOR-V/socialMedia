@@ -31,6 +31,9 @@ public class SpringSecurity {
                                 .authorizeHttpRequests(auth -> auth
                                                 // PUBLIC ENDPOINTS
                                                 .requestMatchers(
+                                                                org.springframework.http.HttpMethod.GET, "/api/settings/**"
+                                                ).permitAll()
+                                                .requestMatchers(
                                                                 "/auth/**",
                                                                 "/api/products",
                                                                 "/api/products/{id}",
