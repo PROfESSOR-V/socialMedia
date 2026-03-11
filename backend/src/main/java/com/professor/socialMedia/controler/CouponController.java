@@ -100,6 +100,28 @@ public class CouponController {
 
     // ==================== User Endpoint ====================
 
+    @GetMapping("/api/coupons/active")
+    public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getActiveCoupons() {
+        List<Coupon> activeCoupons = couponService.getAllCoupons().stream()
+                .filter(Coupon::isActive)
+                .collect(Collectors.toList());
+                
+        List<Map<String, Object>> result = activeCoupons.stream().map(c -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("code", c.getCode());
+            map.put("heading", c.getHeading());
+            map.put("couponType", c.getCouponType().name());
+            map.put("discountAmount", c.getDiscountAmount());
+            map.put("discountPercentage", c.getDiscountPercentage());
+            map.put("userCondition", c.getUserCondition() != null ? c.getUserCondition().name() : null);
+            map.put("minCartItems", c.getMinCartItems());
+            map.put("minOrderValue", c.getMinOrderValue());
+            // don't really need to send the freeProductId or id for this
+            return map;
+        }).collect(Collectors.toList());
+        return ResponseEntity.ok(ApiResponse.success("Active coupons retrieved", result));
+    }
+
     @PostMapping("/api/coupons/apply")
     public ResponseEntity<?> applyCoupon(
             @AuthenticationPrincipal CustomUserDetail userDetail,
