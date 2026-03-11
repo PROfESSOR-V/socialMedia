@@ -65,7 +65,8 @@ public class SpringSecurity {
                                                 // ADMIN ENDPOINTS
                                                 .requestMatchers("/api/products/**", "/api/categories/**",
                                                                 "/api/order/admin/**", "/api/upload",
-                                                                "/api/admin/**", "/api/settings")
+                                                                "/api/admin/**", "/api/settings",
+                                                                "/api/testvideos/**")
                                                 .hasRole("ADMIN")
 
                                                 // ALL OTHER REQUESTS MUST BE AUTHENTICATED
