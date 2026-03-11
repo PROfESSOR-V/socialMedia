@@ -42,6 +42,7 @@ public class CouponController {
             map.put("couponType", c.getCouponType().name());
             map.put("active", c.isActive());
             map.put("discountAmount", c.getDiscountAmount());
+            map.put("discountPercentage", c.getDiscountPercentage());
             map.put("userCondition", c.getUserCondition() != null ? c.getUserCondition().name() : null);
             map.put("freeProductId", c.getFreeProductId() != null ? c.getFreeProductId().toString() : null);
             map.put("minCartItems", c.getMinCartItems());

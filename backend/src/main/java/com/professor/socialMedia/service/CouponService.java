@@ -38,8 +38,13 @@ public class CouponService {
 
         // Validate based on type
         if (coupon.getCouponType() == CouponType.DISCOUNT) {
-            if (coupon.getDiscountAmount() == null || coupon.getDiscountAmount() <= 0) {
-                throw new IllegalArgumentException("Discount amount must be greater than 0");
+            boolean hasAmount = coupon.getDiscountAmount() != null && coupon.getDiscountAmount() > 0;
+            boolean hasPercentage = coupon.getDiscountPercentage() != null && coupon.getDiscountPercentage() > 0;
+            if (!hasAmount && !hasPercentage) {
+                throw new IllegalArgumentException("Discount amount or percentage must be greater than 0");
+            }
+            if (coupon.getDiscountPercentage() != null && coupon.getDiscountPercentage() > 100) {
+                throw new IllegalArgumentException("Discount percentage cannot exceed 100");
             }
             if (coupon.getUserCondition() == null) {
                 coupon.setUserCondition(CouponUserCondition.ALL_USERS);
@@ -73,6 +78,7 @@ public class CouponService {
         existing.setCouponType(updated.getCouponType());
         existing.setActive(updated.isActive());
         existing.setDiscountAmount(updated.getDiscountAmount());
+        existing.setDiscountPercentage(updated.getDiscountPercentage());
         existing.setUserCondition(updated.getUserCondition());
         existing.setFreeProductId(updated.getFreeProductId());
         existing.setMinCartItems(updated.getMinCartItems());
@@ -118,14 +124,25 @@ public class CouponService {
                 }
             }
 
-            double discount = coupon.getDiscountAmount();
-            if (discount > subtotal) {
-                discount = subtotal; // Cap discount at subtotal
+            double discount = 0;
+            // Flat amount discount
+            if (coupon.getDiscountAmount() != null && coupon.getDiscountAmount() > 0) {
+                discount += coupon.getDiscountAmount();
             }
+            // Percentage discount
+            if (coupon.getDiscountPercentage() != null && coupon.getDiscountPercentage() > 0) {
+                discount += (subtotal * coupon.getDiscountPercentage() / 100.0);
+            }
+            // Cap discount at subtotal
+            if (discount > subtotal) {
+                discount = subtotal;
+            }
+            discount = Math.round(discount * 100.0) / 100.0; // Round to 2 decimals
 
             result.put("valid", true);
             result.put("type", "DISCOUNT");
             result.put("discountAmount", discount);
+            result.put("discountPercentage", coupon.getDiscountPercentage());
             result.put("heading", coupon.getHeading());
             result.put("code", coupon.getCode());
 

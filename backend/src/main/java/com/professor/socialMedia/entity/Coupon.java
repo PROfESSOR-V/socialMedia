@@ -25,6 +25,7 @@ public class Coupon {
 
     // --- DISCOUNT type fields ---
     private Double discountAmount; // Flat ₹ off
+    private Double discountPercentage; // Percentage off (e.g. 20 for 20%)
     private CouponUserCondition userCondition; // NEW_USER or ALL_USERS
 
     // --- PRODUCT type fields ---
