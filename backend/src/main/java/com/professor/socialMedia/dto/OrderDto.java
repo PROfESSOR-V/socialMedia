@@ -39,6 +39,13 @@ public class OrderDto {
 
     private String cancelReason;
 
+    // Coupon fields
+    private String couponCode;
+    private String couponHeading;
+    private Double discountAmount;
+    private String freeProductId;
+    private String freeProductName;
+
     private Instant createdAt;
     private Instant updatedAt;
 }

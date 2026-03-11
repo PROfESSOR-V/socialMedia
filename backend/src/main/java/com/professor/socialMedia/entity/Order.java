@@ -38,6 +38,13 @@ public class Order {
 
     private String cancelReason;
 
+    // Coupon Fields
+    private String couponCode;
+    private String couponHeading;
+    private double discountAmount;
+    private ObjectId freeProductId;
+    private String freeProductName;
+
     private Instant createdAt = Instant.now();
     private Instant updatedAt = Instant.now();
 

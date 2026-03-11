@@ -48,6 +48,13 @@ public class OrderMapper {
         orderDto.setShipmozoOrderId(order.getShipmozoOrderId());
         orderDto.setCancelReason(order.getCancelReason());
 
+        // Map Coupon Fields
+        orderDto.setCouponCode(order.getCouponCode());
+        orderDto.setCouponHeading(order.getCouponHeading());
+        orderDto.setDiscountAmount(order.getDiscountAmount());
+        orderDto.setFreeProductId(order.getFreeProductId() != null ? order.getFreeProductId().toString() : null);
+        orderDto.setFreeProductName(order.getFreeProductName());
+
         orderDto.setShipment(order.getShipment());
         orderDto.setShippingAddress(order.getShippingAddress());
         orderDto.setPaymentId(order.getPaymentId() != null ? order.getPaymentId().toString() : null);

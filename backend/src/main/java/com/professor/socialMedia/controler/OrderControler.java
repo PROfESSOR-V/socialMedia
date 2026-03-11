@@ -36,10 +36,13 @@ public class OrderControler {
          * Create order from current user's cart
          */
         @PostMapping
-        public ResponseEntity<ApiResponse<OrderDto>> createOrder(@AuthenticationPrincipal CustomUserDetail user) {
+        public ResponseEntity<ApiResponse<OrderDto>> createOrder(
+                        @AuthenticationPrincipal CustomUserDetail user,
+                        @RequestBody(required = false) java.util.Map<String, String> body) {
                 User userEntity = userService.findByMobileNumber(user.getUsername()).orElseThrow(
                                 () -> new RuntimeException("User not found!"));
-                Order order = orderService.createFromCart(userEntity.getId());
+                String couponCode = (body != null) ? body.get("couponCode") : null;
+                Order order = orderService.createFromCart(userEntity.getId(), couponCode);
                 OrderDto orderDto = orderMapper.mapOrder(order);
                 return ResponseEntity.status(HttpStatus.CREATED).body(
                                 ApiResponse.success("Order created successfully", orderDto));

@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @Transactional
@@ -30,8 +31,10 @@ public class OrderService {
     private ShipmozoTrackingService shipmozoTrackingService;
     @Autowired
     private CashfreeService cashfreeService;
+    @Autowired
+    private CouponService couponService;
 
-    public Order createFromCart(ObjectId userId) {
+    public Order createFromCart(ObjectId userId, String couponCode) {
         Cart cart = cartRepository.findByUserIdAndStatus(userId, CartStatus.ACTIVE)
                 .orElseThrow(() -> new RuntimeException("Cart not found or not active"));
 
@@ -96,6 +99,43 @@ public class OrderService {
             orderItems.add(oi);
             totalPrice += (effectivePrice * ci.getQuantity());
         }
+
+        // Apply coupon if provided
+        double discountAmount = 0;
+        String appliedCouponCode = null;
+        String couponHeading = null;
+        ObjectId freeProductId = null;
+        String freeProductName = null;
+
+        if (couponCode != null && !couponCode.trim().isEmpty()) {
+            try {
+                Map<String, Object> couponResult = couponService.validateAndApply(
+                        couponCode, userId, cart.getItems().size(), totalPrice);
+
+                String couponType = (String) couponResult.get("type");
+                appliedCouponCode = (String) couponResult.get("code");
+                couponHeading = (String) couponResult.get("heading");
+
+                if ("DISCOUNT".equals(couponType)) {
+                    discountAmount = ((Number) couponResult.get("discountAmount")).doubleValue();
+                    totalPrice = Math.max(0, totalPrice - discountAmount);
+                } else if ("PRODUCT".equals(couponType)) {
+                    // Add free product as order item with price 0
+                    String fpId = (String) couponResult.get("freeProductId");
+                    freeProductId = new ObjectId(fpId);
+                    freeProductName = (String) couponResult.get("freeProductName");
+
+                    OrderItem freeItem = new OrderItem();
+                    freeItem.setProductId(freeProductId);
+                    freeItem.setQuantity(1);
+                    freeItem.setPriceSnapshot(0.0);
+                    orderItems.add(freeItem);
+                }
+            } catch (RuntimeException e) {
+                throw new RuntimeException("Coupon error: " + e.getMessage());
+            }
+        }
+
         Order order = new Order();
         order.setUserId(userId);
         order.setItems(orderItems);
@@ -103,11 +143,18 @@ public class OrderService {
         order.setStatus(OrderStatus.PENDING);
         order.setCartId(cart.getId());
 
+        // Set coupon fields
+        if (appliedCouponCode != null) {
+            order.setCouponCode(appliedCouponCode);
+            order.setCouponHeading(couponHeading);
+            order.setDiscountAmount(discountAmount);
+            order.setFreeProductId(freeProductId);
+            order.setFreeProductName(freeProductName);
+        }
+
         Order saved = orderRepository.save(order);
         // Do NOT convert cart here so users can retry payment if they cancel.
         // Webhook handles clearing items on success.
-        // cart.setStatus(CartStatus.CONVERTED);
-        // cartRepository.save(cart);
 
         return saved;
     }

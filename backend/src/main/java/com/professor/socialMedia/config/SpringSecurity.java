@@ -56,6 +56,9 @@ public class SpringSecurity {
                                                 .requestMatchers("/api/orders/{id}", "/api/order")
                                                 .authenticated()
 
+                                                .requestMatchers("/api/coupons/apply")
+                                                .authenticated()
+
                                                 .requestMatchers("/api/payment/order")
                                                 .authenticated()
 
