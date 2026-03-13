@@ -36,10 +36,10 @@ public class CouponController {
         List<Coupon> coupons = couponService.getAllCoupons();
         List<Map<String, Object>> result = coupons.stream().map(c -> {
             Map<String, Object> map = new HashMap<>();
-            map.put("id", c.getId().toString());
+            map.put("id", c.getId() != null ? c.getId().toString() : null);
             map.put("code", c.getCode());
             map.put("heading", c.getHeading());
-            map.put("couponType", c.getCouponType().name());
+            map.put("couponType", c.getCouponType() != null ? c.getCouponType().name() : null);
             map.put("active", c.isActive());
             map.put("discountAmount", c.getDiscountAmount());
             map.put("discountPercentage", c.getDiscountPercentage());
@@ -59,10 +59,10 @@ public class CouponController {
         try {
             Coupon created = couponService.createCoupon(coupon);
             Map<String, Object> map = new HashMap<>();
-            map.put("id", created.getId().toString());
+            map.put("id", created.getId() != null ? created.getId().toString() : null);
             map.put("code", created.getCode());
             map.put("heading", created.getHeading());
-            map.put("couponType", created.getCouponType().name());
+            map.put("couponType", created.getCouponType() != null ? created.getCouponType().name() : null);
             map.put("active", created.isActive());
             return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success("Coupon created successfully", map));
         } catch (RuntimeException e) {
@@ -76,10 +76,10 @@ public class CouponController {
         try {
             Coupon updated = couponService.updateCoupon(new ObjectId(id), coupon);
             Map<String, Object> map = new HashMap<>();
-            map.put("id", updated.getId().toString());
+            map.put("id", updated.getId() != null ? updated.getId().toString() : null);
             map.put("code", updated.getCode());
             map.put("heading", updated.getHeading());
-            map.put("couponType", updated.getCouponType().name());
+            map.put("couponType", updated.getCouponType() != null ? updated.getCouponType().name() : null);
             map.put("active", updated.isActive());
             return ResponseEntity.ok(ApiResponse.success("Coupon updated successfully", map));
         } catch (RuntimeException e) {
@@ -110,7 +110,7 @@ public class CouponController {
             Map<String, Object> map = new HashMap<>();
             map.put("code", c.getCode());
             map.put("heading", c.getHeading());
-            map.put("couponType", c.getCouponType().name());
+            map.put("couponType", c.getCouponType() != null ? c.getCouponType().name() : null);
             map.put("discountAmount", c.getDiscountAmount());
             map.put("discountPercentage", c.getDiscountPercentage());
             map.put("userCondition", c.getUserCondition() != null ? c.getUserCondition().name() : null);

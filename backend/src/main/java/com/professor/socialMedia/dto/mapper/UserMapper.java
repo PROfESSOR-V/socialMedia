@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 public class UserMapper {
     public UserDto mapUser(User user) {
         UserDto dto = new UserDto();
-        dto.setId(user.getId().toString());
+        dto.setId(user.getId() != null ? user.getId().toString() : null);
         dto.setName(user.getName());
         dto.setEmail(user.getEmail());
         dto.setMobileNumber(user.getMobileNumber());

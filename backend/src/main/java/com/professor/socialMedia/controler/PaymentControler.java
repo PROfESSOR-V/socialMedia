@@ -115,10 +115,15 @@ public class PaymentControler {
         public ResponseEntity<Map<String, Object>> getAllPayments() {
                 java.util.List<Payment> payments = paymentRepository.findAll();
                 java.util.List<Map<String, Object>> result = payments.stream()
-                                .sorted(java.util.Comparator.comparing(Payment::getCreatedAt).reversed())
+                                .sorted((p1, p2) -> {
+                                        if (p1.getCreatedAt() == null && p2.getCreatedAt() == null) return 0;
+                                        if (p1.getCreatedAt() == null) return 1;
+                                        if (p2.getCreatedAt() == null) return -1;
+                                        return p2.getCreatedAt().compareTo(p1.getCreatedAt());
+                                })
                                 .map(payment -> {
                                         Map<String, Object> map = new java.util.HashMap<>();
-                                        map.put("id", payment.getId().toString());
+                                        map.put("id", payment.getId() != null ? payment.getId().toString() : null);
                                         map.put("orderId",
                                                         payment.getOrderId() != null ? payment.getOrderId().toString()
                                                                         : null);

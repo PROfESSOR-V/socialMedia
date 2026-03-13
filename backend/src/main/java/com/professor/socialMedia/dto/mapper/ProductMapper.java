@@ -14,7 +14,7 @@ public class ProductMapper {
 
     public ProductDto mapProduct(Product product) {
         ProductDto dto = new ProductDto();
-        dto.setId(product.getId().toString());
+        dto.setId(product.getId() != null ? product.getId().toString() : null);
         dto.setName(product.getName());
         dto.setDescription(product.getDescription());
         dto.setDiscountPercentage(product.getDiscountPercentage());
@@ -32,7 +32,7 @@ public class ProductMapper {
         if (product.getCategoryId() != null) {
             categoryRepository.findById(product.getCategoryId()).ifPresent(cat -> {
                 CategoryDto catDto = new CategoryDto();
-                catDto.setId(cat.getId().toString());
+                catDto.setId(cat.getId() != null ? cat.getId().toString() : null);
                 catDto.setName(cat.getName());
                 dto.setCategory(catDto);
             });
