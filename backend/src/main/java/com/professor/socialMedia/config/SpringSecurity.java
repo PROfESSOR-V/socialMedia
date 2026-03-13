@@ -59,7 +59,7 @@ public class SpringSecurity {
                                                                 org.springframework.http.HttpMethod.GET, "/api/settings/**"
                                                 ).permitAll()
                                                 .requestMatchers(
-                                                                org.springframework.http.HttpMethod.GET, "/api/testvideos", "/api/testvideos/**"
+                                                                org.springframework.http.HttpMethod.GET, "/api/testvideos", "/api/testvideos/**", "/api/blogs", "/api/blogs/**"
                                                 ).permitAll()
                                                 .requestMatchers(
                                                                 "/auth/**",

@@ -12,6 +12,7 @@
 /home/professor/Downloads/socialMedia/backend/src/main/java/com/professor/socialMedia/entity/Coupon.java
 /home/professor/Downloads/socialMedia/backend/src/main/java/com/professor/socialMedia/repository/OrderRepository.java
 /home/professor/Downloads/socialMedia/backend/src/main/java/com/professor/socialMedia/entity/Address.java
+/home/professor/Downloads/socialMedia/backend/src/main/java/com/professor/socialMedia/service/BlogService.java
 /home/professor/Downloads/socialMedia/backend/src/main/java/com/professor/socialMedia/dto/mapper/OrderMapper.java
 /home/professor/Downloads/socialMedia/backend/src/main/java/com/professor/socialMedia/controler/AuthControler.java
 /home/professor/Downloads/socialMedia/backend/src/main/java/com/professor/socialMedia/dto/ProductDto.java
@@ -34,6 +35,7 @@
 /home/professor/Downloads/socialMedia/backend/src/main/java/com/professor/socialMedia/entity/Cart.java
 /home/professor/Downloads/socialMedia/backend/src/main/java/com/professor/socialMedia/Security/CustomUserDetail.java
 /home/professor/Downloads/socialMedia/backend/src/main/java/com/professor/socialMedia/entity/ShipmentStatus.java
+/home/professor/Downloads/socialMedia/backend/src/main/java/com/professor/socialMedia/controler/BlogController.java
 /home/professor/Downloads/socialMedia/backend/src/main/java/com/professor/socialMedia/dto/CartItemDto.java
 /home/professor/Downloads/socialMedia/backend/src/main/java/com/professor/socialMedia/controler/OrderControler.java
 /home/professor/Downloads/socialMedia/backend/src/main/java/com/professor/socialMedia/controler/UploadControler.java
@@ -53,7 +55,9 @@
 /home/professor/Downloads/socialMedia/backend/src/main/java/com/professor/socialMedia/entity/Payment.java
 /home/professor/Downloads/socialMedia/backend/src/main/java/com/professor/socialMedia/dto/request/CreateCategoryRequest.java
 /home/professor/Downloads/socialMedia/backend/src/main/java/com/professor/socialMedia/repository/CartRepository.java
+/home/professor/Downloads/socialMedia/backend/src/main/java/com/professor/socialMedia/repository/BlogRepository.java
 /home/professor/Downloads/socialMedia/backend/src/main/java/com/professor/socialMedia/dto/request/AddToCartRequest.java
+/home/professor/Downloads/socialMedia/backend/src/main/java/com/professor/socialMedia/entity/Blog.java
 /home/professor/Downloads/socialMedia/backend/src/main/java/com/professor/socialMedia/repository/CouponRepository.java
 /home/professor/Downloads/socialMedia/backend/src/main/java/com/professor/socialMedia/repository/ProductRepository.java
 /home/professor/Downloads/socialMedia/backend/src/main/java/com/professor/socialMedia/entity/Category.java

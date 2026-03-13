@@ -107,10 +107,13 @@ public class OrderService {
         ObjectId freeProductId = null;
         String freeProductName = null;
 
+        // Calculate total actual quantity
+        int totalCartQuantity = cart.getItems().stream().mapToInt(CartItem::getQuantity).sum();
+
         if (couponCode != null && !couponCode.trim().isEmpty()) {
             try {
                 Map<String, Object> couponResult = couponService.validateAndApply(
-                        couponCode, userId, cart.getItems().size(), totalPrice);
+                        couponCode, userId, totalCartQuantity, totalPrice);
 
                 String couponType = (String) couponResult.get("type");
                 appliedCouponCode = (String) couponResult.get("code");

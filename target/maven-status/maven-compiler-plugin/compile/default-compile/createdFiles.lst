@@ -13,6 +13,7 @@ com/professor/socialMedia/service/TestVideoService.class
 com/professor/socialMedia/dto/request/CreateCategoryRequest.class
 com/professor/socialMedia/entity/ShipmentInfo.class
 com/professor/socialMedia/dto/request/VerifyOtpRequest.class
+com/professor/socialMedia/repository/BlogRepository.class
 com/professor/socialMedia/config/SpringSecurity.class
 com/professor/socialMedia/dto/request/CreateProductRequest.class
 com/professor/socialMedia/entity/CouponType.class
@@ -74,9 +75,11 @@ com/professor/socialMedia/repository/UserRepository.class
 com/professor/socialMedia/Security/CustomUserDetail.class
 com/professor/socialMedia/entity/Role.class
 com/professor/socialMedia/entity/ProductFaq.class
+com/professor/socialMedia/controler/BlogController.class
 com/professor/socialMedia/dto/request/PaymentWebhookRequest.class
 com/professor/socialMedia/service/UserService.class
 com/professor/socialMedia/controler/SiteSettingController.class
+com/professor/socialMedia/service/BlogService.class
 com/professor/socialMedia/controler/CategoryControler.class
 com/professor/socialMedia/controler/ProductControler.class
 com/professor/socialMedia/dto/response/AuthResponse.class
@@ -98,6 +101,7 @@ com/professor/socialMedia/dto/mapper/CategoryMapper.class
 com/professor/socialMedia/service/ShipmozoShipmentService$2.class
 com/professor/socialMedia/repository/PaymentRepository.class
 com/professor/socialMedia/entity/Feedback.class
+com/professor/socialMedia/entity/Blog.class
 com/professor/socialMedia/Security/JwtAuthenticationFilter.class
 com/professor/socialMedia/controler/UserControler.class
 com/professor/socialMedia/service/ShipmozoTrackingService.class
