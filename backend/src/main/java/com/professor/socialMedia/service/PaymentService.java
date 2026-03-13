@@ -122,6 +122,7 @@ public class PaymentService {
             // 5. UPDATE ORDER (THIS IS THE MAIN BUG)
             if (success) {
                 order.setStatus(OrderStatus.PAID);
+                order.setPaymentStatus(PaymentStatus.SUCCESS); // FIX: Update payment status
                 order.setPaymentId(savedPayment.getId());
 
                 // Deduct stock safely
@@ -162,6 +163,7 @@ public class PaymentService {
 
             } else {
                 order.setStatus(OrderStatus.FAILED);
+                order.setPaymentStatus(PaymentStatus.FAILED); // FIX: Update payment status
                 // Revert cart so the user can try again easily
                 if (order.getCartId() != null) {
                     cartRepository.findById(order.getCartId()).ifPresent(cart -> {

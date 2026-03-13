@@ -67,6 +67,7 @@ public class SpringSecurity {
                                                                 "/api/products/{id}",
                                                                 "/api/categories",
                                                                 "/api/payments/webhook",
+                                                                "/api/payments/refund-webhook",
                                                                 "/api/feedback",
                                                                 "/health")
                                                 .permitAll()
