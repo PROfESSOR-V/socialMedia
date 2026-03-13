@@ -60,7 +60,7 @@ public class AdminDashboardController {
 
         List<Map<String, Object>> recentActivity = recentOrders.stream().map(o -> {
             Map<String, Object> map = new HashMap<>();
-            map.put("id", o.getId().toString());
+            map.put("id", o.getId() != null ? o.getId().toString() : null);
             map.put("amount", o.getTotalAmount());
             map.put("status", o.getStatus() != null ? o.getStatus().name() : "UNKNOWN");
             map.put("date", o.getCreatedAt());
