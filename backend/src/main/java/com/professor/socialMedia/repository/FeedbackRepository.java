@@ -10,4 +10,6 @@ import java.util.List;
 @Repository
 public interface FeedbackRepository extends MongoRepository<Feedback, ObjectId> {
     List<Feedback> findByUserId(ObjectId userId);
+    List<Feedback> findByTopicOrderByCreatedAtDesc(String topic);
+    List<Feedback> findTop20ByRatingGreaterThanEqualOrderByCreatedAtDesc(Integer rating);
 }

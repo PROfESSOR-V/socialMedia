@@ -15,6 +15,8 @@ public class Feedback {
 
     private ObjectId userId;
     private String name;
+    private String topic;
+    private Integer rating;
     private String message;
 
     private Instant createdAt = Instant.now();
