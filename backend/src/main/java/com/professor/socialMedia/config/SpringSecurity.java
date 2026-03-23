@@ -96,7 +96,7 @@ public class SpringSecurity {
 
                                                 // ADMIN ENDPOINTS
                                                 .requestMatchers("/api/products/**", "/api/categories/**",
-                                                                "/api/order/admin/**", "/api/upload",
+                                                                "/api/order/admin/**", "/api/upload", "/api/upload/**",
                                                                 "/api/admin/**", "/api/settings",
                                                                 "/api/testvideos/**")
                                                 .hasRole("ADMIN")
