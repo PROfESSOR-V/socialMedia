@@ -7,11 +7,13 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.Instant;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 
 @Document(collection = "blogs")
 @Data
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Blog {
     @Id
     @JsonSerialize(using = ToStringSerializer.class)
