@@ -8,6 +8,7 @@ import com.professor.socialMedia.entity.ProductFaq;
 import com.professor.socialMedia.entity.ProductVariant;
 
 import java.util.List;
+import com.professor.socialMedia.entity.ComboItem;
 
 @Data
 @NoArgsConstructor
@@ -34,4 +35,7 @@ public class ProductDto {
     private Boolean showOnHomePage;
     private List<ProductVariant> variants;
     private List<ProductFaq> faqs;
+
+    private boolean isCombo;
+    private List<ComboItem> comboItems;
 }

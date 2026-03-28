@@ -33,6 +33,8 @@ public class Product {
     private String ingredients;
     private String howToUse;
     private ObjectId categoryId;
+    private boolean isCombo = false;
+    private List<ComboItem> comboItems = new ArrayList<>();
 
     private boolean active = true;
     private Integer priority = 0;

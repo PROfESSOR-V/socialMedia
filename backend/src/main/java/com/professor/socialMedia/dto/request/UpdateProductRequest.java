@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 
 import com.professor.socialMedia.entity.ProductFaq;
 import com.professor.socialMedia.entity.ProductVariant;
+import com.professor.socialMedia.entity.ComboItem;
 
 import java.util.List;
 
@@ -30,4 +31,7 @@ public class UpdateProductRequest {
     private String categoryId;
     private List<ProductVariant> variants;
     private List<ProductFaq> faqs;
+
+    private Boolean isCombo;
+    private List<ComboItem> comboItems;
 }

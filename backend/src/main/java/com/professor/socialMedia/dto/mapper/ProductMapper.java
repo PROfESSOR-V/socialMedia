@@ -43,6 +43,8 @@ public class ProductMapper {
         dto.setShowOnHomePage(product.isShowOnHomePage());
         dto.setVariants(product.getVariants());
         dto.setFaqs(product.getFaqs());
+        dto.setCombo(product.isCombo());
+        dto.setComboItems(product.getComboItems());
         return dto;
     }
 }

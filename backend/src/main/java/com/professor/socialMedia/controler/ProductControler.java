@@ -101,6 +101,11 @@ public class ProductControler {
             product.setFaqs(request.getFaqs());
         }
 
+        product.setCombo(request.isCombo());
+        if (request.getComboItems() != null) {
+            product.setComboItems(request.getComboItems());
+        }
+
         Product created = productService.create(product);
         ProductDto productDto = productMapper.mapProduct(created);
 
@@ -172,6 +177,12 @@ public class ProductControler {
         }
         if (request.getFaqs() != null) {
             product.setFaqs(request.getFaqs());
+        }
+        if (request.getIsCombo() != null) {
+            product.setCombo(request.getIsCombo());
+        }
+        if (request.getComboItems() != null) {
+            product.setComboItems(request.getComboItems());
         }
 
         Product updated = productService.update(product);

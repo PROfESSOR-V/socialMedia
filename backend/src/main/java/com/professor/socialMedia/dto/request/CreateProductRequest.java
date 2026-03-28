@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 
 import com.professor.socialMedia.entity.ProductFaq;
 import com.professor.socialMedia.entity.ProductVariant;
+import com.professor.socialMedia.entity.ComboItem;
 import java.util.List;
 
 @Data
@@ -46,4 +47,7 @@ public class CreateProductRequest {
 
     private List<ProductVariant> variants;
     private List<ProductFaq> faqs;
+
+    private boolean isCombo;
+    private List<ComboItem> comboItems;
 }
