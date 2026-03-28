@@ -42,7 +42,8 @@ public class OrderControler {
                 User userEntity = userService.findByMobileNumber(user.getUsername()).orElseThrow(
                                 () -> new RuntimeException("User not found!"));
                 String couponCode = (body != null) ? body.get("couponCode") : null;
-                Order order = orderService.createFromCart(userEntity.getId(), couponCode);
+                String paymentMethod = (body != null && body.get("paymentMethod") != null) ? body.get("paymentMethod") : "ONLINE";
+                Order order = orderService.createFromCart(userEntity.getId(), couponCode, paymentMethod);
                 OrderDto orderDto = orderMapper.mapOrder(order);
                 return ResponseEntity.status(HttpStatus.CREATED).body(
                                 ApiResponse.success("Order created successfully", orderDto));

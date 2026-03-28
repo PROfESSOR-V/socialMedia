@@ -48,10 +48,17 @@ public class PaymentControler {
                                 order.getId(),
                                 userEntity.getId(), // user identity
                                 "CASHFREE");
-                // 2. Create Cashfree Order
+
+                // 2. Determine payment amount: ₹50 for COD, full amount for ONLINE
+                double paymentAmount = "COD".equalsIgnoreCase(order.getPaymentMethod())
+                                ? 50.0
+                                : order.getTotalAmount();
+
+                // 3. Create Cashfree Order with the correct amount
                 Map<String, Object> cashfreeOrder = cashfreeService.createOrder(order,
                                 userEntity.getEmail() != null ? userEntity.getEmail() : "noemail@example.com",
-                                userEntity.getMobileNumber(), (String) request.get("returnUrl"));
+                                userEntity.getMobileNumber(), (String) request.get("returnUrl"),
+                                paymentAmount);
 
                 return ResponseEntity.status(HttpStatus.CREATED)
                                 .body(cashfreeOrder);

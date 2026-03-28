@@ -65,7 +65,8 @@ public class SpringSecurity {
                                                                 org.springframework.http.HttpMethod.GET,
                                                                 "/api/feedback/recent",
                                                                 "/api/feedback/topic/**",
-                                                                "/api/feedback/stats/**"
+                                                                "/api/feedback/stats/**",
+                                                                "/api/coupons/active"
                                                 ).permitAll()
                                                 .requestMatchers(
                                                                 "/auth/**",
@@ -88,7 +89,7 @@ public class SpringSecurity {
                                                 .requestMatchers("/api/orders/{id}", "/api/order")
                                                 .authenticated()
 
-                                                .requestMatchers("/api/coupons/apply", "/api/coupons/active")
+                                                .requestMatchers("/api/coupons/apply")
                                                 .authenticated()
 
                                                 .requestMatchers("/api/payment/order")

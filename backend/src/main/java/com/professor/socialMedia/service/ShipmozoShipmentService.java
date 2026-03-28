@@ -93,13 +93,19 @@ public class ShipmozoShipmentService {
                 body.put("consignee_city", city);
                 body.put("consignee_state", state);
 
-                body.put("payment_type", "PREPAID");
-                body.put("weight", 500); // weight in grams
-                body.put("length", 10); // in cm
-                body.put("width", 10);
-                body.put("height", 10);
-                body.put("warehouse_id", ""); // Needs to be explicitly empty if using default
-                body.put("cod_amount", "");
+                // Set payment type based on order payment method
+		if ("COD".equalsIgnoreCase(order.getPaymentMethod())) {
+			body.put("payment_type", "COD");
+			body.put("cod_amount", String.valueOf(order.getCodAmountDue()));
+		} else {
+			body.put("payment_type", "PREPAID");
+			body.put("cod_amount", "");
+		}
+		body.put("weight", 500); // weight in grams
+		body.put("length", 10); // in cm
+		body.put("width", 10);
+		body.put("height", 10);
+		body.put("warehouse_id", ""); // Needs to be explicitly empty if using default
 
                 List<Map<String, Object>> itemsList = new ArrayList<>();
                 for (var i : order.getItems()) {

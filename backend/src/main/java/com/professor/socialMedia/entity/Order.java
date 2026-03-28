@@ -38,6 +38,11 @@ public class Order {
 
     private String cancelReason;
 
+    // COD Fields
+    private String paymentMethod = "ONLINE"; // ONLINE or COD
+    private double codFee;
+    private double codAmountDue; // amount to collect on delivery
+
     // Coupon Fields
     private String couponCode;
     private String couponHeading;

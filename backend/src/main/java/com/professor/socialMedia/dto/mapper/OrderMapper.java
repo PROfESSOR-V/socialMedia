@@ -52,6 +52,11 @@ public class OrderMapper {
         orderDto.setShipmozoOrderId(order.getShipmozoOrderId());
         orderDto.setCancelReason(order.getCancelReason());
 
+        // Map COD Fields
+        orderDto.setPaymentMethod(order.getPaymentMethod());
+        orderDto.setCodFee(order.getCodFee());
+        orderDto.setCodAmountDue(order.getCodAmountDue());
+
         // Map Coupon Fields
         orderDto.setCouponCode(order.getCouponCode());
         orderDto.setCouponHeading(order.getCouponHeading());

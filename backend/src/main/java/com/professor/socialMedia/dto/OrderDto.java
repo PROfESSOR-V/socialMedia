@@ -39,6 +39,11 @@ public class OrderDto {
 
     private String cancelReason;
 
+    // COD fields
+    private String paymentMethod;
+    private Double codFee;
+    private Double codAmountDue;
+
     // Coupon fields
     private String couponCode;
     private String couponHeading;

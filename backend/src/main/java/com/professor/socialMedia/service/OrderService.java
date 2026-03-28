@@ -34,13 +34,16 @@ public class OrderService {
     @Autowired
     private CouponService couponService;
 
-    public Order createFromCart(ObjectId userId, String couponCode) {
+    public Order createFromCart(ObjectId userId, String couponCode, String paymentMethod) {
         Cart cart = cartRepository.findByUserIdAndStatus(userId, CartStatus.ACTIVE)
                 .orElseThrow(() -> new RuntimeException("Cart not found or not active"));
 
         if (cart.getItems() == null || cart.getItems().isEmpty()) {
             throw new IllegalArgumentException("Cart is empty");
         }
+
+        // Normalize payment method
+        boolean isCod = "COD".equalsIgnoreCase(paymentMethod);
 
         List<OrderItem> orderItems = new ArrayList<>();
         double totalPrice = 0;
@@ -139,12 +142,28 @@ public class OrderService {
             }
         }
 
+        // Apply COD fee if payment method is COD
+        double codFee = 0;
+        double codAmountDue = 0;
+        if (isCod) {
+            codFee = 50.0;
+            codAmountDue = totalPrice; // amount to collect on delivery (before adding cod fee)
+            totalPrice += codFee; // total now includes COD fee
+        }
+
         Order order = new Order();
         order.setUserId(userId);
         order.setItems(orderItems);
         order.setTotalAmount(totalPrice);
         order.setStatus(OrderStatus.PENDING);
         order.setCartId(cart.getId());
+
+        // Set payment method and COD fields
+        order.setPaymentMethod(isCod ? "COD" : "ONLINE");
+        if (isCod) {
+            order.setCodFee(codFee);
+            order.setCodAmountDue(codAmountDue);
+        }
 
         // Set coupon fields
         if (appliedCouponCode != null) {

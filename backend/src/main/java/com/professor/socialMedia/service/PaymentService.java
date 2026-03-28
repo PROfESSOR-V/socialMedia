@@ -51,18 +51,24 @@ public class PaymentService {
         if (order.getStatus() != OrderStatus.PENDING && order.getStatus() != OrderStatus.CREATED) {
             throw new IllegalStateException("Order id not payable.");
         }
+
+        // For COD orders, only charge ₹50 online. For ONLINE orders, charge full amount.
+        double paymentAmount = "COD".equalsIgnoreCase(order.getPaymentMethod())
+                ? 50.0
+                : order.getTotalAmount();
+
         Optional<Payment> existingPayment = paymentRepository.findByOrderIdAndStatus(orderId, PaymentStatus.CREATED);
         if (existingPayment.isPresent()) {
             Payment p = existingPayment.get();
             p.setProvider(provider);
-            p.setAmount(order.getTotalAmount());
+            p.setAmount(paymentAmount);
             return paymentRepository.save(p);
         }
 
         Payment payment = new Payment();
         payment.setOrderId(orderId);
         payment.setProvider(provider);
-        payment.setAmount(order.getTotalAmount());
+        payment.setAmount(paymentAmount);
         payment.setStatus(PaymentStatus.CREATED);
         paymentRepository.save(payment);
         return payment;

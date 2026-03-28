@@ -27,7 +27,7 @@ public class CashfreeService {
         private String baseUrl;
 
         public Map<String, Object> createOrder(Order order, String customerEmail, String customerPhone,
-                        String returnUrl) {
+                        String returnUrl, double amount) {
 
                 HttpHeaders headers = new HttpHeaders();
                 headers.setContentType(MediaType.APPLICATION_JSON);
@@ -38,7 +38,7 @@ public class CashfreeService {
                 Map<String, Object> body = new HashMap<>();
                 String cashfreeOrderId = order.getId().toString() + "_" + System.currentTimeMillis();
                 body.put("order_id", cashfreeOrderId);
-                body.put("order_amount", order.getTotalAmount());
+                body.put("order_amount", amount);
                 body.put("order_currency", "INR");
                 body.put("customer_details", Map.of(
                                 "customer_id", order.getUserId().toString(),
